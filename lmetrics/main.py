@@ -23,10 +23,6 @@ class LMetricsScript(Script):
     def get_parser(self):
         parser = argparse.ArgumentParser(description=self.__doc__)
         parser.add_argument(
-            '-c', '--config', type=argparse.FileType('r'),
-            default='lmetrics.yaml',
-            help='configuration file (default: %(default)s)')
-        parser.add_argument(
             '-H', '--host', default='localhost',
             help='host address to bind (default: %(default)s)')
         parser.add_argument(
@@ -36,6 +32,9 @@ class LMetricsScript(Script):
             '--log-level', default='warning',
             choices=['critical', 'error', 'warning', 'info', 'debug'],
             help='minimum level for log messages (default %(default)s)')
+        parser.add_argument(
+            'config', type=argparse.FileType('r'),
+            help='configuration file')
         return parser
 
     def main(self, args):

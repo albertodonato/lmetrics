@@ -5,8 +5,7 @@ from aiohttp.web import Application, Response
 from prometheus_async.aio.web import server_stats
 
 
-HOMEPAGE = '''
-<!DOCTYPE html>
+HOMEPAGE = '''<!DOCTYPE html>
 <html>
   <head>
     <title>LMetrics - Prometheus log metrics exporter</title>
