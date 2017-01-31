@@ -1,0 +1,54 @@
+from functools import partial
+
+from aiohttp.web import Application, Response
+
+from prometheus_async.aio.web import server_stats
+
+
+HOMEPAGE = '''
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>LMetrics - Prometheus log metrics exporter</title>
+  </head>
+  <body>
+    <h1>LMetrics - Prometheus log metrics exporter</h1>
+    <p>Metric are exported at the <a href="/metrics">/metrics</a> endpoint.</p>
+  </body>
+</html>
+'''
+
+
+def create_web_app(loop, host, port, watchers):
+    '''Create an aiohttp web application to export metrics.'''
+    app = Application(loop=loop)
+    app['endpoint'] = (host, port)
+
+    app.router.add_get('/', _home)
+    app.router.add_get('/metrics', server_stats)
+    app.on_startup.append(partial(_start_watchers, watchers))
+    app.on_startup.append(_log_startup_message)
+    app.on_shutdown.append(partial(_stop_watchers, watchers))
+    return app
+
+
+async def _home(request):
+    '''Home page request handler.'''
+    return Response(content_type='text/html', text=HOMEPAGE)
+
+
+def _start_watchers(watchers, app):
+    '''Start all FileWatchers.'''
+    for watcher in watchers:
+        watcher.watch()
+
+
+async def _stop_watchers(watchers, app):
+    '''Stop all FileWatchers.'''
+    for watcher in watchers:
+        await watcher.stop()
+
+
+def _log_startup_message(app):
+    '''Log message about application startup.'''
+    app.logger.info('Listening on http://{}:{}'.format(*app['endpoint']))

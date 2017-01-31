@@ -1,0 +1,20 @@
+metrics:
+  sample_summary:
+    type: summary
+    description: A sample summary
+
+  sample_counter:
+    type: counter
+    description: A sample counter
+
+  sample_histogram:
+    type: histogram
+    description: A sample histogram
+    buckets: [10, 50, 100, 200, 500, 1000]
+
+  sample_gauge:
+    type: gauge
+    description: A sample gauge
+
+files:
+  sample*.log: sample-rule.lua

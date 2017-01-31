@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+# Generate random samples for log file.
+#
+
+random_prefix() {
+    local prefixes=("line1" "line2")
+    local rand=$[ $RANDOM % ${#prefixes[@]} ]
+    echo ${prefixes[$rand]}
+}
+
+random_float() {
+    echo "scale=2; $RANDOM / 100" | bc
+}
+
+while true; do
+    echo "$(random_prefix) $(random_float) "
+    sleep 1
+done
