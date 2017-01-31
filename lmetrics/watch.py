@@ -89,7 +89,7 @@ class FileWatcher(Loggable):
             self._dir, event.filename.decode(self._encoding))
         if not fnmatch(file_path, self.full_path):
             return
-        if event.mask & (IN_CREATE | IN_MOVED_TO):
+        if event.create_event or event.moved_to_event:
             if event.cookie in self._move_cookies:
                 # the file has been moved within the watched dir, don't read
                 # content again
@@ -98,13 +98,13 @@ class FileWatcher(Loggable):
             else:
                 self._read_file_content(file_path, from_start=True)
             self._watch_file(inotify, file_path)
-        elif event.mask & IN_MOVED_FROM:
+        elif event.moved_from_event:
             self.logger.debug('file moved {}'.format(file_path))
             inotify.ignore(self._files[file_path]['wd'])
             self._move_cookies.add(event.cookie)
             self._close_file(file_path)
             del self._files[file_path]
-        elif event.mask & IN_DELETE:
+        elif event.delete_event:
             self.logger.debug('file removed: {}'.format(file_path))
             self._close_file(file_path)
             del self._files[file_path]
@@ -114,7 +114,7 @@ class FileWatcher(Loggable):
         if not file_info:
             return  # the file has been ignored or removed
         file_path = file_info['path']
-        if event.mask & IN_MODIFY:
+        if event.modify_event:
             self.logger.debug('file modified: {}'.format(file_path))
             self._read_file_content(file_path)
 
