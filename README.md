@@ -26,8 +26,8 @@ $$ python setup.py develop
 LMetrics requires a config file which describes metrics, log files and rule
 files used to parse them.
 
-By default it looks for a `lmetrics.yaml` file in the current dir. The config
-file contains something like this:
+It must be passed a config file in yaml format, describing metrics and mapping
+rules to log files to parse. Here's an example of the format:
 
 ```yaml
 metrics:
@@ -49,12 +49,13 @@ metrics:
     description: A sample gauge
 
 files:
-  sample1.log: sample-rule1.lua
-  sample2.log: sample-rule2.lua
+  sample*.log: sample-rule1.lua
+  other-sample.log: sample-rule2.lua
 ```
 
 The `metrics` section defines Prometheus metrics to export, while the `files`
-section maps log files to parse with files containing rules used to parse them.
+section maps log files (shell globbing can be used) to parse with files
+containing rules used to parse them.
 
 Rules are written in [Lua](https://www.lua.org/), and have the following format
 
@@ -74,20 +75,22 @@ rules.rule1 = rule1
 
 A rule consists of a python regexp and an `action()` method.
 
-The rule is created with `Rule('<regexp>')`. For every line of log files that
-use the rule file for matching, the `action()` method is called, with a Lua
-table as argument, containing the values of the named groups from the regexp.
+The rule is created as `Rule('<regexp>')`. For every line of log files that are
+associated with the rule file for matching, the `action()` method is called,
+with a Lua table as argument, containing the values of the named groups from
+the regexp.
 
-Metrics are passed to the Lua environment through the global `metrics` table.
+Metrics are passed to the Lua environment through the global `metrics` table
+and are available for use in the rule.
 
-Defined rules must be exported by assigning them in the global `rules` table
-(hence the need for the `rules.rule1 = rule1` line). All rules defined in the
-table are checked, so the assigned name is not relevant.
+Defined rules must be exported by assigning them inside the global `rules`
+table (hence the need for the `rules.rule1 = rule1` line). All rules defined in
+the table are checked, so the assigned name is not relevant.
 
 
 ## Run ##
 
-Run `lmetrics` to start the program, by default it will start the webserver
-on port `8000`. This can be changed with the `-p` option.
+Run `lmetrics <config.yaml>` to start the program, by default it will start the
+webserver on port `8000`. This can be changed with the `-p` option.
 
 Run `curl -s http://localhost:8000/metrics` to see metrics.
