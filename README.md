@@ -60,17 +60,17 @@ containing rules used to parse them.
 Rules are written in [Lua](https://www.lua.org/), and have the following format
 
 ```lua
-rule1 = Rule([[line1 (?P<val>[\d.\-+]+)]])
+a_rule = Rule([[line1 (?P<val>[\d.\-+]+)]])
 
-function rule1.action(match)
-   value = match.val
+function a_rule.action(match)
+   local value = match.val
    metrics.sample_counter.inc()
    metrics.sample_summary.observe(value)
    metrics.sample_histogram.observe(value)
    metrics.sample_gauge.set(value)
 end
 
-rules.rule1 = rule1
+rules.a_rule = a_rule
 ```
 
 A rule consists of a python regexp and an `action()` method.
@@ -84,8 +84,8 @@ Metrics are passed to the Lua environment through the global `metrics` table
 and are available for use in the rule.
 
 Defined rules must be exported by assigning them inside the global `rules`
-table (hence the need for the `rules.rule1 = rule1` line). All rules defined in
-the table are checked, so the assigned name is not relevant.
+table (hence the need for the `rules.a_rule = a_rule` line). All rules defined
+in the table are checked, so the assigned name is not relevant.
 
 
 ## Run ##
@@ -93,4 +93,4 @@ the table are checked, so the assigned name is not relevant.
 Run `lmetrics <config.yaml>` to start the program, by default it will start the
 webserver on port `8000`. This can be changed with the `-p` option.
 
-Run `curl -s http://localhost:8000/metrics` to see metrics.
+Run `curl http://localhost:8000/metrics` to see metrics.
