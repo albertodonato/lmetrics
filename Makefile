@@ -26,4 +26,4 @@ lint:
 html:
 	sphinx-build -b html docs html
 
-.PHONY: build devel clean test lint html 
+.PHONY: build devel clean test coverage lint html

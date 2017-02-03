@@ -12,6 +12,7 @@ config = {
     'author_email': 'alberto.donato@gmail.com',
     'maintainer': 'Alberto Donato',
     'maintainer_email': 'alberto.donato@gmail.com',
+    'url': 'https://bitbucket.org/ack/lmetrics',
     'packages': find_packages(),
     'include_package_data': True,
     'entry_points': {'console_scripts': [
