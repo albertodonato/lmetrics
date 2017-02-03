@@ -47,7 +47,8 @@ class LMetricsScript(Script):
         app = create_web_app(loop, args.host, args.port, watchers)
         web.run_app(
             app, host=args.host, port=args.port,
-            print=lambda *args, **kargs: None)
+            print=lambda *args, **kargs: None,
+            access_log_format='%a "%r" %s %b "%{Referrer}i" "%{User-Agent}i"')
 
     def _setup_logging(self, log_level):
         '''Setup logging for the application and aiohttp.'''
