@@ -6,7 +6,7 @@ function rule1.action(match)
    metrics.sample_counter.inc()
    metrics.sample_summary.observe(value)
    metrics.sample_histogram.observe(value)
-   metrics.sample_gauge.set(value)
+   metrics.sample_gauge.labels('line1').set(value)
 end
 
 rules.rule1 = rule1
@@ -20,7 +20,7 @@ function rule2.action(match)
    metrics.sample_counter.inc()
    metrics.sample_summary.observe(value)
    metrics.sample_histogram.observe(value)
-   metrics.sample_gauge.set(value)
+   metrics.sample_gauge.labels('line2').set(value)
 end
 
 rules.rule2 = rule2

@@ -1,19 +1,25 @@
 from prometheus_client.core import Counter, Gauge, Histogram, Summary
 
+
 # Map metric types to classes and allowed options
 METRIC_TYPES = {
     'counter': {
         'class': Counter,
-        'options': []},
+        'options': {
+            'labels': 'labelnames'}},
     'gauge': {
         'class': Gauge,
-        'options': []},
+        'options': {
+            'labels': 'labelnames'}},
     'histogram': {
         'class': Histogram,
-        'options': ['buckets']},
+        'options': {
+            'labels': 'labelnames',
+            'buckets': 'buckets'}},
     'summary': {
         'class': Summary,
-        'options': []}}
+        'options': {
+            'labels': 'labelnames'}}}
 
 
 class InvalidMetricType(Exception):
@@ -42,7 +48,8 @@ def _register_metric(config, registry):
         raise InvalidMetricType(config.name, config.type)
 
     options = {
-        key: value for key, value in config.config.items()
+        metric_info['options'][key]: value
+        for key, value in config.config.items()
         if key in metric_info['options']}
 
     return metric_info['class'](

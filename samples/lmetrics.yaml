@@ -15,6 +15,7 @@ metrics:
   sample_gauge:
     type: gauge
     description: A sample gauge
+    labels: [prefix]
 
 files:
   sample*.log: sample-rule.lua
