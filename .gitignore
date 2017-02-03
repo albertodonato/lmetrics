@@ -1,8 +1,8 @@
 *.pyc
 *.pyo
 /build
-/html
 *.egg-info
 .eggs
 .pybuild
 .coverage
+.tox
