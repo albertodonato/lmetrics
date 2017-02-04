@@ -1,11 +1,11 @@
-# LMetrics - Prometheus exporter for metrics from log files #
+# LMetrics - Prometheus exporter for metrics from log files
 
 LMetrics allows defining Prometheus metrics, parsing logfiles based on
 regexp-based match rules to extract values for metrics, and exports them via an
 HTTP endpoint.
 
 
-## Installing ##
+## Installing
 
 The following libraries are required to build LMetrics:
 
@@ -13,15 +13,15 @@ The following libraries are required to build LMetrics:
 * libffi-dev
 * libseccomp-dev
 
-With those installed
+To setup inside a virtualenv:
 
 ```bash
-$$ virtualenv <target-dir>
-$$ . <target-dir>/bin/activate
-$$ python setup.py develop
+$ virtualenv -p python3.5 <target-dir>
+$ . <target-dir>/bin/activate
+$ python setup.py develop
 ```
 
-## Configuring ##
+## Configuring
 
 LMetrics requires a config file which describes metrics, log files and rule
 files used to parse them.
@@ -37,6 +37,7 @@ metrics:
 
   sample_counter:
     type: counter
+    labels: [label1, label2]
     description: A sample counter
 
   sample_histogram:
@@ -88,7 +89,7 @@ table (hence the need for the `rules.a_rule = a_rule` line). All rules defined
 in the table are checked, so the assigned name is not relevant.
 
 
-## Run ##
+## Running
 
 Run `lmetrics <config.yaml>` to start the program, by default it will start the
 webserver on port `8000`. This can be changed with the `-p` option.
