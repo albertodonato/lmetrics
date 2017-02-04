@@ -6,3 +6,4 @@
 .pybuild
 .coverage
 .tox
+.cache
