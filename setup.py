@@ -27,7 +27,7 @@ config = {
         'PyYaml',
         'toolrack'],
     'tests_require': ['asynctest', 'fixtures'],
-    'keywords': 'log metric prometheus',
+    'keywords': 'log metric prometheus exporter',
     'classifiers': [
         'Development Status :: 3 - Alpha',
         'Intended Audience :: System Administrators',

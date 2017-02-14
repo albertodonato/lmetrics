@@ -54,7 +54,7 @@ class LuaFileRule:
 
 
 class RuleRegistry(Loggable):
-    '''A registry for rules to match files.'''
+    '''A registry for rules to match log files content.'''
 
     rule_class = LuaFileRule  # for testing
 
