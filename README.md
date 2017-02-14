@@ -1,4 +1,4 @@
-# LMetrics - Prometheus  for metrics parsed from log files
+# LMetrics - Prometheus exporter for metrics parsed from log files
 
 LMetrics allows defining Prometheus metrics, parsing logfiles based on
 regexp-based match rules to extract values for metrics, and exports them via an
