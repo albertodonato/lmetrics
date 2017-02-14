@@ -5,7 +5,7 @@ import asyncio
 
 from aiohttp import web
 
-from prometheus_client.core import REGISTRY
+from prometheus_client import CollectorRegistry, ProcessCollector
 
 from toolrack.script import Script, ErrorExitMessage
 from toolrack.log import setup_logger
@@ -29,9 +29,12 @@ class LMetricsScript(Script):
             '-p', '--port', type=int, default=8000,
             help='port to run the webserver on (default: %(default)s)')
         parser.add_argument(
+            '--process-stats', action='store_true',
+            help='include process stats in metrics (default: %(default)s)')
+        parser.add_argument(
             '--log-level', default='warning',
             choices=['critical', 'error', 'warning', 'info', 'debug'],
-            help='minimum level for log messages (default %(default)s)')
+            help='minimum level for log messages (default: %(default)s)')
         parser.add_argument(
             'config', type=argparse.FileType('r'),
             help='configuration file')
@@ -41,10 +44,11 @@ class LMetricsScript(Script):
         self._setup_logging(args.log_level)
         loop = asyncio.get_event_loop()
         config = self._load_config(args.config)
-        metrics = self._create_metrics(config.metrics, REGISTRY)
+        registry = self._get_registry(include_process_stats=args.process_stats)
+        metrics = self._create_metrics(config.metrics, registry)
         analyzers = self._create_file_analyzers(config.files, metrics)
         watchers = create_watchers(analyzers, loop)
-        app = create_web_app(loop, args.host, args.port, watchers)
+        app = create_web_app(loop, args.host, args.port, watchers, registry)
         web.run_app(
             app, host=args.host, port=args.port,
             print=lambda *args, **kargs: None,
@@ -64,6 +68,13 @@ class LMetricsScript(Script):
         config = load_config(config_file)
         config_file.close()
         return config
+
+    def _get_registry(self, include_process_stats=False):
+        '''Return a metrics registry.'''
+        registry = CollectorRegistry(auto_describe=True)
+        if include_process_stats:
+            ProcessCollector(registry=registry)
+        return registry
 
     def _create_metrics(self, metrics, registry):
         '''Create and register metrics.'''

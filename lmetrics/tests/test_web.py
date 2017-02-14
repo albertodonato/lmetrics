@@ -2,6 +2,8 @@ from aiohttp.test_utils import (
     AioHTTPTestCase,
     unittest_run_loop)
 
+from prometheus_client import CollectorRegistry, ProcessCollector
+
 from ..web import create_web_app
 
 
@@ -21,10 +23,12 @@ class AppTestCase(AioHTTPTestCase):
 
     def setUp(self):
         self.watcher = FakeWatcher()
+        self.registry = CollectorRegistry(auto_describe=True)
         super().setUp()
 
     def get_app(self, loop):
-        return create_web_app(loop, 'localhost', 8000, [self.watcher])
+        return create_web_app(
+            loop, 'localhost', 8000, [self.watcher], self.registry)
 
     @unittest_run_loop
     async def test_watcher_start(self):
@@ -49,9 +53,10 @@ class AppTestCase(AioHTTPTestCase):
     @unittest_run_loop
     async def test_metrics(self):
         '''The /metrics page display Prometheus metrics.'''
+        ProcessCollector(registry=self.registry)  # add process metrics
         request = await self.client.request('GET', '/metrics')
         self.assertEqual(request.status, 200)
         self.assertEqual(request.content_type, 'text/plain')
         text = await request.text()
-        # the page includes metrics
+        # the response includes metrics from the ProcessCollector
         self.assertIn('process_open_fds', text)

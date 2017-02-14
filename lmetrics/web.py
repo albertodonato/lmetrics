@@ -2,7 +2,7 @@ from functools import partial
 
 from aiohttp.web import Application, Response
 
-from prometheus_client import REGISTRY, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 
 HOMEPAGE = '''<!DOCTYPE html>
@@ -18,13 +18,13 @@ HOMEPAGE = '''<!DOCTYPE html>
 '''
 
 
-def create_web_app(loop, host, port, watchers):
+def create_web_app(loop, host, port, watchers, registry):
     '''Create an aiohttp web application to export metrics.'''
     app = Application(loop=loop)
     app['endpoint'] = (host, port)
 
     app.router.add_get('/', _home)
-    app.router.add_get('/metrics', _metrics)
+    app.router.add_get('/metrics', partial(_metrics, registry))
     app.on_startup.append(partial(_start_watchers, watchers))
     app.on_startup.append(_log_startup_message)
     app.on_shutdown.append(partial(_stop_watchers, watchers))
@@ -36,9 +36,10 @@ async def _home(request):
     return Response(content_type='text/html', text=HOMEPAGE)
 
 
-async def _metrics(request):
+async def _metrics(registry, request):
     '''Handler for metrics.'''
-    response = Response(body=generate_latest(REGISTRY))
+    body = generate_latest(registry)
+    response = Response(body=body)
     response.content_type = CONTENT_TYPE_LATEST
     return response
 

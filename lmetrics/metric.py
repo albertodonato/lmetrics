@@ -1,4 +1,4 @@
-from prometheus_client.core import Counter, Gauge, Histogram, Summary
+from prometheus_client import Counter, Gauge, Histogram, Summary
 
 
 # Map metric types to classes and allowed options
