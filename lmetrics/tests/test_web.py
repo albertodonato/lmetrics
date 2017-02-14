@@ -51,6 +51,7 @@ class AppTestCase(AioHTTPTestCase):
         '''The /metrics page display Prometheus metrics.'''
         request = await self.client.request('GET', '/metrics')
         self.assertEqual(request.status, 200)
+        self.assertEqual(request.content_type, 'text/plain')
         text = await request.text()
         # the page includes metrics
         self.assertIn('process_open_fds', text)

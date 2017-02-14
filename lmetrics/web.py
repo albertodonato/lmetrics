@@ -2,7 +2,7 @@ from functools import partial
 
 from aiohttp.web import Application, Response
 
-from prometheus_async.aio.web import server_stats
+from prometheus_client import REGISTRY, generate_latest, CONTENT_TYPE_LATEST
 
 
 HOMEPAGE = '''<!DOCTYPE html>
@@ -24,7 +24,7 @@ def create_web_app(loop, host, port, watchers):
     app['endpoint'] = (host, port)
 
     app.router.add_get('/', _home)
-    app.router.add_get('/metrics', server_stats)
+    app.router.add_get('/metrics', _metrics)
     app.on_startup.append(partial(_start_watchers, watchers))
     app.on_startup.append(_log_startup_message)
     app.on_shutdown.append(partial(_stop_watchers, watchers))
@@ -34,6 +34,13 @@ def create_web_app(loop, host, port, watchers):
 async def _home(request):
     '''Home page request handler.'''
     return Response(content_type='text/html', text=HOMEPAGE)
+
+
+async def _metrics(request):
+    '''Handler for metrics.'''
+    response = Response(body=generate_latest(REGISTRY))
+    response.content_type = CONTENT_TYPE_LATEST
+    return response
 
 
 def _start_watchers(watchers, app):

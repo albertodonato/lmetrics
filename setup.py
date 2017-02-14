@@ -22,7 +22,6 @@ config = {
         'aiohttp',
         'butter',
         'lupa',
-        'prometheus-async',
         'prometheus-client',
         'PyYaml',
         'toolrack'],
