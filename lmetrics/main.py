@@ -32,8 +32,8 @@ class LMetricsScript(Script):
             '-p', '--port', type=int, default=8000,
             help='port to run the webserver on (default: %(default)s)')
         parser.add_argument(
-            '-L', '--log-level', default='warning',
-            choices=['critical', 'error', 'warning', 'info', 'debug'],
+            '-L', '--log-level', default='WARNING',
+            choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
             help='minimum level for log messages (default: %(default)s)')
         parser.add_argument(
             '--process-stats', action='store_true',
@@ -56,7 +56,7 @@ class LMetricsScript(Script):
 
     def _setup_logging(self, log_level):
         '''Setup logging for the application and aiohttp.'''
-        level = getattr(logging, log_level.upper())
+        level = getattr(logging, log_level)
         names = (
             'aiohttp.access', 'aiohttp.internal', 'aiohttp.server',
             'aiohttp.web', 'lmetrics')
