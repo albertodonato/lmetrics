@@ -139,7 +139,7 @@ class FileWatcherGlobTest(asynctest.TestCase, ToolrackTestCase):
         self.watcher.watch()
         await asyncio.sleep(0.1)  # let the loop run
         # only lines from matched files are present
-        self.assertEqual(self.calls, ['file1', 'file2'])
+        self.assertCountEqual(self.calls, ['file1', 'file2'])
         await self.watcher.stop()
 
     async def test_glob_match_file_created_after(self):

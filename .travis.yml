@@ -1,0 +1,11 @@
+language: python
+python:
+  - "3.5"
+  - "3.6"
+sudo: required
+dist: trusty
+before_install:
+  - sudo apt-get install -y build-essential
+  - sudo apt-get install -y libluabind-dev libffi-dev libseccomp-dev
+install: pip install setuptools==34.2.0 .
+script: python setup.py test
