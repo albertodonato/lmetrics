@@ -23,21 +23,21 @@ class LMetricsScript(Script):
     def get_parser(self):
         parser = argparse.ArgumentParser(description=self.__doc__)
         parser.add_argument(
+            'config', type=argparse.FileType('r'),
+            help='configuration file')
+        parser.add_argument(
             '-H', '--host', default='localhost',
             help='host address to bind (default: %(default)s)')
         parser.add_argument(
             '-p', '--port', type=int, default=8000,
             help='port to run the webserver on (default: %(default)s)')
         parser.add_argument(
-            '--process-stats', action='store_true',
-            help='include process stats in metrics (default: %(default)s)')
-        parser.add_argument(
-            '--log-level', default='warning',
+            '-L', '--log-level', default='warning',
             choices=['critical', 'error', 'warning', 'info', 'debug'],
             help='minimum level for log messages (default: %(default)s)')
         parser.add_argument(
-            'config', type=argparse.FileType('r'),
-            help='configuration file')
+            '--process-stats', action='store_true',
+            help='include process stats in metrics (default: %(default)s)')
         return parser
 
     def main(self, args):
