@@ -1,5 +1,7 @@
 # LMetrics - Prometheus exporter for metrics parsed from log files
 
+[![Build Status](https://travis-ci.org/albertodonato/lmetrics.svg?branch=master)](https://travis-ci.org/albertodonato/lmetrics)
+
 LMetrics allows defining Prometheus metrics, parsing logfiles based on
 regexp-based match rules to extract values for metrics, and exports them via an
 HTTP endpoint.
