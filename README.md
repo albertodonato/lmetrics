@@ -7,7 +7,7 @@ regexp-based match rules to extract values for metrics, and exports them via an
 HTTP endpoint.
 
 
-## Installing
+## Installation
 
 The following libraries are required to build LMetrics:
 
@@ -23,7 +23,7 @@ $ . <target-dir>/bin/activate
 $ python setup.py develop
 ```
 
-## Configuring
+## Configuration
 
 LMetrics requires a config file which describes metrics, log files and rule
 files used to parse them.
@@ -83,13 +83,51 @@ associated with the rule file for matching, the `action()` method is called,
 with a Lua table as argument, containing the values of the named groups from
 the regexp.
 
-Metrics are passed to the Lua environment through the global `metrics` table
-and are available for use in the rule.
+Each rule file is run in a separate Lua environment, which has the following
+global variables defined:
 
-Defined rules must be exported by assigning them inside the global `rules`
-table (hence the need for the `rules.a_rule = a_rule` line). All rules defined
-in the table are checked, so the assigned name is not relevant.
+- `metrics`: a table containing all the defined metrics, accessible as
+  `metrics.<metric-name>`
+- `rules`: a table where define rules must be added to get exported, (see the
+  `rules.a_rule = a_rule` statement in the example above). All rules in the
+  table are checked, so the name is not relevant.
+  
 
+### Metric types
+
+Metrics ojbects have the same API (they're effectively the same objects) as the
+ones defined in
+the [Prometheus python client](https://github.com/prometheus/client_python);
+specifically there are four supported metrics types:
+
+- `Counter`: track totals
+
+```lua
+metrics.sample_counter.inc()  -- increment by 1
+metrics.sample_counter.inc(5.2)  -- increment by 5.2
+```
+
+- `Summary`: tracks size and number of events
+
+```lua
+metrics.sample_summary.observe(123.3)  -- add an event with value 123.3
+```
+
+- `Histogram`: tracks size and number of events in buckets
+
+```lua
+metrics.sample_histogram.observe(123.3)  -- add an event with value 123.3
+```
+
+- `Gauge`: tracks instantaneous values
+
+```lua
+metrics.sample_gauge.inc()  -- increment by 1
+metrics.sample_gauge.inc(2.1)  -- increment by 2.1
+metrics.sample_gauge.dec()  -- decrement by 1
+metrics.sample_gauge.dec(2.1)  -- decrement by 2.1
+metrics.sample_gauge.set(3.2)  -- set to 3.2
+```
 
 ## Running
 
