@@ -1,7 +1,6 @@
 # LMetrics - Prometheus exporter for metrics parsed from log files
 
 [![Build Status](https://travis-ci.org/albertodonato/lmetrics.svg?branch=master)](https://travis-ci.org/albertodonato/lmetrics)
-
 [![Coverage Status](https://codecov.io/gh/albertodonato/lmetrics/branch/master/graph/badge.svg)](https://codecov.io/gh/albertodonato/lmetrics)
 
 
