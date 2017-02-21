@@ -2,6 +2,9 @@
 
 [![Build Status](https://travis-ci.org/albertodonato/lmetrics.svg?branch=master)](https://travis-ci.org/albertodonato/lmetrics)
 
+[![Coverage Status](https://codecov.io/gh/albertodonato/lmetrics/branch/master/graph/badge.svg)](https://codecov.io/gh/albertodonato/lmetrics)
+
+
 LMetrics allows defining Prometheus metrics, parsing logfiles based on
 regexp-based match rules to extract values for metrics, and exports them via an
 HTTP endpoint.
