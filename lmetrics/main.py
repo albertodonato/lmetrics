@@ -21,23 +21,24 @@ class LMetricsScript(Script):
     '''Parse and expose metrics from log files to Prometheus.'''
 
     def get_parser(self):
-        parser = argparse.ArgumentParser(description=self.__doc__)
+        parser = argparse.ArgumentParser(
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+            description=self.__doc__)
         parser.add_argument(
             'config', type=argparse.FileType('r'),
             help='configuration file')
         parser.add_argument(
-            '-H', '--host', default='localhost',
-            help='host address to bind (default: %(default)s)')
+            '-H', '--host', default='localhost', help='host address to bind')
         parser.add_argument(
             '-p', '--port', type=int, default=8000,
-            help='port to run the webserver on (default: %(default)s)')
+            help='port to run the webserver on')
         parser.add_argument(
             '-L', '--log-level', default='WARNING',
             choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
-            help='minimum level for log messages (default: %(default)s)')
+            help='minimum level for log messages')
         parser.add_argument(
             '--process-stats', action='store_true',
-            help='include process stats in metrics (default: %(default)s)')
+            help='include process stats in metrics')
         return parser
 
     def main(self, args):
