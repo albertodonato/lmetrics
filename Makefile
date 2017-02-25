@@ -18,7 +18,7 @@ test:
 coverage:
 	@coverage run -m unittest
 	@coverage report --show-missing --skip-covered --fail-under=100 \
-		--include=lmetrics/* --omit=**/test_\*.py
+		--include=lmetrics/* --omit=**/test_\*.py --omit=lmetrics/main.py
 
 lint:
 	@flake8 setup.py lmetrics
