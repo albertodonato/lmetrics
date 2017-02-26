@@ -1,10 +1,9 @@
 from collections import namedtuple
+
 import yaml
 
+from prometheus_aioexporter.metric import MetricConfig
 
-# Configuration for a metric
-MetricConfig = namedtuple(
-    'MetricConfig', ['name', 'description', 'type', 'config'])
 
 # Top-level configuration
 Config = namedtuple('Config', ['metrics', 'files'])
@@ -22,7 +21,7 @@ def _get_metrics(metrics):
     '''Return metrics configuration.'''
     configs = []
     for name, config in metrics.items():
-        metric_type = config.pop('type', None)
+        metric_type = config.pop('type', '')
         description = config.pop('description', '')
         configs.append(MetricConfig(name, description, metric_type, config))
 

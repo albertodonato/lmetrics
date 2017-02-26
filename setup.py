@@ -24,6 +24,7 @@ config = {
         'lupa',
         'prometheus-client',
         'PyYaml',
+        'prometheus-aioexporter',
         'toolrack'],
     'tests_require': ['asynctest', 'fixtures'],
     'keywords': 'log metric prometheus exporter',

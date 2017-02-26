@@ -9,7 +9,7 @@ devel:
 	$(SETUP) develop
 
 clean:
-	rm -rf build html *.egg-info
+	rm -rf build *.egg-info
 	find . -type d -name __pycache__ | xargs rm -rf
 
 test:
@@ -18,12 +18,9 @@ test:
 coverage:
 	@coverage run -m unittest
 	@coverage report --show-missing --skip-covered --fail-under=100 \
-		--include=lmetrics/* --omit=**/test_\*.py --omit=lmetrics/main.py
+		--include=lmetrics/* --omit=**/test_\*.py
 
 lint:
 	@flake8 setup.py lmetrics
 
-html:
-	sphinx-build -b html docs html
-
-.PHONY: build devel clean test coverage lint html
+.PHONY: build devel clean test coverage lint

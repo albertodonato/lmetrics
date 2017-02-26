@@ -19,7 +19,7 @@ from ..watch import (
 FakeAnalyzer = namedtuple('FakeAnalyzer', ['filename', 'analyze_line'])
 
 
-class FileWatcherTest(asynctest.TestCase, ToolrackTestCase):
+class FileWatcherTests(asynctest.TestCase, ToolrackTestCase):
 
     def setUp(self):
         super().setUp()
@@ -121,7 +121,7 @@ class FileWatcherTest(asynctest.TestCase, ToolrackTestCase):
         self.assertEqual(self.calls, ['line1', 'line2', 'line3', 'line4'])
 
 
-class FileWatcherGlobTest(asynctest.TestCase, ToolrackTestCase):
+class FileWatcherGlobTests(asynctest.TestCase, ToolrackTestCase):
 
     def setUp(self):
         super().setUp()
@@ -230,7 +230,7 @@ class FileWatcherGlobTest(asynctest.TestCase, ToolrackTestCase):
         await self.watcher.stop()
 
 
-class CreateWatchersTest(unittest.TestCase):
+class CreateWatchersTests(unittest.TestCase):
 
     def test_create_watchers(self):
         '''create_watchers return a FileWatcher for each analyzer.'''
@@ -243,7 +243,7 @@ class CreateWatchersTest(unittest.TestCase):
         self.assertEqual(watcher2.full_path, os.path.join(cwd, 'file2'))
 
 
-class WatchedFilesTest(unittest.TestCase):
+class WatchedFilesTests(unittest.TestCase):
 
     def setUp(self):
         super().setUp()

@@ -39,7 +39,7 @@ class FakeLuaRule:
 FakeLuaFileRule = namedtuple('FakeLuaFileRule', ['name', 'lua_rule'])
 
 
-class FileAnalyzerTest(TestCase):
+class FileAnalyzerTests(TestCase):
 
     def test_analyze_line(self):
         '''analyze_line calls all rules with every line.'''
@@ -52,7 +52,7 @@ class FileAnalyzerTest(TestCase):
         self.assertEqual(rule2.lines, ['line1', 'line2'])
 
 
-class LuaFileRuleTest(TestCase):
+class LuaFileRuleTests(TestCase):
 
     def test_analyze_line_matching(self):
         '''analyze_line calls the LuaRule if the regexp matches.'''
@@ -70,7 +70,7 @@ class LuaFileRuleTest(TestCase):
         self.assertEqual(lua_rule.calls, [])
 
 
-class RuleRegistryTest(TestCase):
+class RuleRegistryTests(TestCase):
 
     def setUp(self):
         super().setUp()
@@ -173,7 +173,7 @@ class RuleRegistryTest(TestCase):
         self.assertIn('unexpected symbol', str(context_manager.exception))
 
 
-class CreateFileAnalyzersTest(TestCase):
+class CreateFileAnalyzersTests(TestCase):
 
     def setUp(self):
         super().setUp()

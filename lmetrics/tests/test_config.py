@@ -9,7 +9,7 @@ from toolrack.testing import (
 from ..config import load_config
 
 
-class LoadConfigTest(TestCase):
+class LoadConfigTests(TestCase):
 
     def setUp(self):
         super().setUp()

@@ -1,68 +1,35 @@
-import sys
 import argparse
-import logging
-import asyncio
 
-from aiohttp import web
+from toolrack.script import ErrorExitMessage
 
-from prometheus_client import CollectorRegistry, ProcessCollector
-
-from toolrack.script import Script, ErrorExitMessage
-from toolrack.log import setup_logger
+from prometheus_aioexporter.script import PrometheusExporterScript
 
 from .config import load_config
-from .metric import create_metrics, InvalidMetricType
 from .rule import create_file_analyzers, RuleSyntaxError
 from .watch import create_watchers
-from .web import create_web_app
 
 
-class LMetricsScript(Script):
+class LMetricsScript(PrometheusExporterScript):
     '''Parse and expose metrics from log files to Prometheus.'''
 
-    def get_parser(self):
-        parser = argparse.ArgumentParser(
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-            description=self.__doc__)
+    def configure_argument_parser(self, parser):
         parser.add_argument(
             'config', type=argparse.FileType('r'),
             help='configuration file')
-        parser.add_argument(
-            '-H', '--host', default='localhost', help='host address to bind')
-        parser.add_argument(
-            '-p', '--port', type=int, default=8000,
-            help='port to run the webserver on')
-        parser.add_argument(
-            '-L', '--log-level', default='WARNING',
-            choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
-            help='minimum level for log messages')
-        parser.add_argument(
-            '--process-stats', action='store_true',
-            help='include process stats in metrics')
-        return parser
 
-    def main(self, args):
-        self._setup_logging(args.log_level)
-        loop = asyncio.get_event_loop()
+    def configure(self, args):
         config = self._load_config(args.config)
-        registry = self._get_registry(include_process_stats=args.process_stats)
-        metrics = self._create_metrics(config.metrics, registry)
+        metrics = self.create_metrics(config.metrics)
         analyzers = self._create_file_analyzers(config.files, metrics)
-        watchers = create_watchers(analyzers, loop)
-        app = create_web_app(loop, args.host, args.port, watchers, registry)
-        web.run_app(
-            app, host=args.host, port=args.port,
-            print=lambda *args, **kargs: None,
-            access_log_format='%a "%r" %s %b "%{Referrer}i" "%{User-Agent}i"')
+        self.watchers = create_watchers(analyzers, self.loop)
 
-    def _setup_logging(self, log_level):
-        '''Setup logging for the application and aiohttp.'''
-        level = getattr(logging, log_level)
-        names = (
-            'aiohttp.access', 'aiohttp.internal', 'aiohttp.server',
-            'aiohttp.web', 'lmetrics')
-        for name in names:
-            setup_logger(name=name, stream=sys.stderr, level=level)
+    def on_application_startup(self, application):
+        for watcher in self.watchers:
+            watcher.watch()
+
+    async def on_application_shutdown(self, application):
+        for watcher in self.watchers:
+            await watcher.stop()
 
     def _load_config(self, config_file):
         '''Load the application configuration.'''
@@ -70,26 +37,13 @@ class LMetricsScript(Script):
         config_file.close()
         return config
 
-    def _get_registry(self, include_process_stats=False):
-        '''Return a metrics registry.'''
-        registry = CollectorRegistry(auto_describe=True)
-        if include_process_stats:
-            ProcessCollector(registry=registry)
-        return registry
-
-    def _create_metrics(self, metrics, registry):
-        '''Create and register metrics.'''
-        try:
-            return create_metrics(metrics, registry)
-        except InvalidMetricType as error:
-            raise ErrorExitMessage(str(error))
-
     def _create_file_analyzers(self, files, metrics):
+        '''Create FileAnalyzers.'''
         try:
             return create_file_analyzers(files, metrics)
         except FileNotFoundError as error:
             raise ErrorExitMessage(
-                'Rule file no found: {}'.format(error.filename))
+                'Rule file not found: {}'.format(error.filename))
         except RuleSyntaxError as error:
             raise ErrorExitMessage(str(error))
 
