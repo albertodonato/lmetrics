@@ -1,4 +1,5 @@
 from io import StringIO
+from operator import attrgetter
 
 import yaml
 
@@ -48,7 +49,7 @@ class LMetricsScriptTests(LoopTestCase):
         '''The _load_config method loads the config from file.'''
         with open(self.config_path) as fh:
             config = self.script._load_config(fh)
-        metrics = sorted(config.metrics, key=lambda metric: metric.name)
+        metrics = sorted(config.metrics, key=attrgetter('name'))
         self.assertEqual('metric1', metrics[0].name)
         self.assertEqual('metric2', metrics[1].name)
 
