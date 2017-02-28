@@ -3,7 +3,7 @@ import argparse
 from toolrack.script import ErrorExitMessage
 
 from prometheus_aioexporter.script import PrometheusExporterScript
-from prometheus_aioexporter.metric import create_metrics, InvalidMetricType
+from prometheus_aioexporter.metric import InvalidMetricType
 
 from .config import load_config
 from .rule import create_file_analyzers, RuleSyntaxError
@@ -20,7 +20,7 @@ class LMetricsScript(PrometheusExporterScript):
 
     def configure(self, args):
         config = self._load_config(args.config)
-        metrics = create_metrics(config.metrics, self.registry)
+        metrics = self.create_metrics(config.metrics)
         analyzers = self._create_file_analyzers(config.files, metrics)
         self.watchers = create_watchers(analyzers, self.loop)
 
