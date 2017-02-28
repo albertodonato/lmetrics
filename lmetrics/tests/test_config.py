@@ -6,6 +6,8 @@ from toolrack.testing import (
     TestCase,
     TempDirFixture)
 
+from prometheus_aioexporter.metric import InvalidMetricType
+
 from ..config import load_config
 
 
@@ -44,3 +46,14 @@ class LoadConfigTests(TestCase):
         self.assertEqual(metric2.type, 'histogram')
         self.assertEqual(metric2.description, 'metric two')
         self.assertEqual(metric2.config, {'buckets': [10, 100, 1000]})
+
+    def test_load_metrics_invalid_type(self):
+        '''An error is raised if a metric type is invalid.'''
+        config = {'metrics': {'metric': {'type': 'unknown'}}}
+        file = self.tempdir.mkfile(content=yaml.dump(config))
+        with self.assertRaises(InvalidMetricType) as cm, open(file) as fd:
+            load_config(fd)
+        self.assertEqual(
+            str(cm.exception),
+            'Invalid type for metric: must be one of counter, gauge, '
+            'histogram, summary')

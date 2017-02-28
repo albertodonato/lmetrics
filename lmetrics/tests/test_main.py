@@ -96,6 +96,18 @@ class LMetricsScriptTests(LoopTestCase):
             str(cm.exception),
             'in {}:1: syntax error near <eof>'.format(rule_file_path))
 
+    def test_configure_invalid_metric_type(self):
+        '''An error is raised if an invalid metric type is configured.'''
+        config = {'metrics': {'metric': {'type': 'unknown'}}}
+        config_path = self.temp_dir.mkfile(content=yaml.dump(config))
+        args = self.script.get_parser().parse_args([config_path])
+        with self.assertRaises(ErrorExitMessage) as cm:
+            self.script.configure(args)
+        self.assertEqual(
+            str(cm.exception),
+            'Invalid type for metric: must be one of counter, gauge, '
+            'histogram, summary')
+
 
 class FakeWatcher:
 

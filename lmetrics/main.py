@@ -3,6 +3,7 @@ import argparse
 from toolrack.script import ErrorExitMessage
 
 from prometheus_aioexporter.script import PrometheusExporterScript
+from prometheus_aioexporter.metric import create_metrics, InvalidMetricType
 
 from .config import load_config
 from .rule import create_file_analyzers, RuleSyntaxError
@@ -19,7 +20,7 @@ class LMetricsScript(PrometheusExporterScript):
 
     def configure(self, args):
         config = self._load_config(args.config)
-        metrics = self.create_metrics(config.metrics)
+        metrics = create_metrics(config.metrics, self.registry)
         analyzers = self._create_file_analyzers(config.files, metrics)
         self.watchers = create_watchers(analyzers, self.loop)
 
@@ -33,8 +34,12 @@ class LMetricsScript(PrometheusExporterScript):
 
     def _load_config(self, config_file):
         '''Load the application configuration.'''
-        config = load_config(config_file)
-        config_file.close()
+        try:
+            config = load_config(config_file)
+        except InvalidMetricType as error:
+            raise ErrorExitMessage(str(error))
+        finally:
+            config_file.close()
         return config
 
     def _create_file_analyzers(self, files, metrics):
