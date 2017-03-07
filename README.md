@@ -134,6 +134,6 @@ metrics.sample_gauge.set(3.2)  -- set to 3.2
 ## Running
 
 Run `lmetrics <config.yaml>` to start the program, by default it will start the
-webserver on port `8000`. This can be changed with the `-p` option.
+webserver on port `9090`. This can be changed with the `-p` option.
 
-Run `curl http://localhost:8000/metrics` to see metrics.
+Run `curl http://localhost:9090/metrics` to see metrics.
