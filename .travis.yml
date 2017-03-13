@@ -5,7 +5,7 @@ python:
 sudo: required
 dist: trusty
 before_install:
-  - sudo apt-get install -y build-essential
+  - sudo apt-get install -y build-essential linux-libc-dev
   - sudo apt-get install -y libluabind-dev libffi-dev libseccomp-dev
 install: pip install setuptools==34.2.0 coverage codecov .
 script: coverage run setup.py test
