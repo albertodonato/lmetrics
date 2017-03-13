@@ -20,7 +20,7 @@ config = {
     'test_suite': 'lmetrics',
     'install_requires': [
         'aiohttp',
-        'butter',
+        'butter <= 0.12.3',
         'lupa',
         'prometheus-client',
         'PyYaml',
