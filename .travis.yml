@@ -10,7 +10,6 @@ after_success: codecov
 addons:
   apt:
     packages:
-      - linux-libc-dev
       - libluabind-dev
       - libffi-dev
       - libseccomp-dev
