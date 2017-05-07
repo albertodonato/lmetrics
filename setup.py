@@ -2,6 +2,8 @@ from setuptools import setup, find_packages
 
 from lmetrics import __version__, __doc__ as description
 
+tests_require = ['asynctest', 'fixtures']
+
 config = {
     'name': 'lmetrics',
     'version': __version__,
@@ -26,7 +28,8 @@ config = {
         'PyYaml',
         'prometheus-aioexporter',
         'toolrack'],
-    'tests_require': ['asynctest', 'fixtures'],
+    'tests_require': tests_require,
+    'extras_require': {'testing': tests_require},
     'keywords': 'log metric prometheus exporter',
     'classifiers': [
         'Development Status :: 3 - Alpha',

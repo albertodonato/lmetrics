@@ -131,13 +131,12 @@ class LMetricsScriptApplicationTests(AioHTTPTestCase, TestWithFixtures):
             content=yaml.dump(self.config))
         super().setUp()
 
-    def get_app(self, loop):
-        self.script = LMetricsScript(loop=loop)
+    async def get_application(self):
+        self.script = LMetricsScript(loop=self.loop)
+        self.script.watchers = [self.watcher]
         args = self.script.get_parser().parse_args([self.config_path])
         args.config.close()
-        self.script.watchers = [self.watcher]
-        application = self.script._create_application(args)
-        return application
+        return self.script._create_application(args)
 
     @unittest_run_loop
     async def test_watchers_start(self):

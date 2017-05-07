@@ -4,9 +4,11 @@ python:
   - "3.6"
 sudo: required
 dist: trusty
-install: pip install setuptools==34.2.0 coverage codecov .
-script: coverage run setup.py test
-after_success: codecov
+install: pip install tox-travis codecov
+script: tox
+after_success:
+  - tox -e coverage
+  - codecov
 addons:
   apt:
     packages:
