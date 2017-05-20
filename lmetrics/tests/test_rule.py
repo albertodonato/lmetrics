@@ -42,7 +42,7 @@ FakeLuaFileRule = namedtuple('FakeLuaFileRule', ['name', 'lua_rule'])
 class FileAnalyzerTests(TestCase):
 
     def test_analyze_line(self):
-        '''analyze_line calls all rules with every line.'''
+        """analyze_line calls all rules with every line."""
         rule1 = FakeRule()
         rule2 = FakeRule()
         analyzer = FileAnalyzer('file.txt', [rule1, rule2])
@@ -55,7 +55,7 @@ class FileAnalyzerTests(TestCase):
 class LuaFileRuleTests(TestCase):
 
     def test_analyze_line_matching(self):
-        '''analyze_line calls the LuaRule if the regexp matches.'''
+        """analyze_line calls the LuaRule if the regexp matches."""
         lua_rule = FakeLuaRule('foo(?P<val>.*)foo')
         rule = LuaFileRule('file.txt', lua_rule)
         rule.analyze_line('foobarfoo')
@@ -63,7 +63,7 @@ class LuaFileRuleTests(TestCase):
         self.assertEqual(lua_rule.calls, [{'val': 'bar'}, {'val': 'baz'}])
 
     def test_analyze_line_no_match(self):
-        '''analyze_line doesn't call the rule if the regexp doesn't match.'''
+        """analyze_line doesn't call the rule if the regexp doesn't match."""
         lua_rule = FakeLuaRule('foo(?P<val>.*)foo')
         rule = LuaFileRule('file.txt', lua_rule)
         rule.analyze_line('barfoobar')
@@ -83,14 +83,14 @@ class RuleRegistryTests(TestCase):
         self.logger = self.useFixture(LoggerFixture(level=logging.DEBUG))
 
     def test_get_file_analyzer(self):
-        '''get_file_analyzer returns a FileAnalyzer instance.'''
+        """get_file_analyzer returns a FileAnalyzer instance."""
         rule_file = self.tempdir.mkfile()
         analyzer = self.registry.get_file_analyzer('file.txt', rule_file)
         self.assertIsInstance(analyzer, FileAnalyzer)
         self.assertEqual(analyzer.filename, 'file.txt')
 
     def test_get_file_analyzer_caches_rules(self):
-        '''LuaFileRules are created once for each Lua file.'''
+        """LuaFileRules are created once for each Lua file."""
         rule_code = '''
         rules.rule = Rule('regexp')
         function rules.rule.action(match)
@@ -104,7 +104,7 @@ class RuleRegistryTests(TestCase):
         self.assertEqual(analyzer1.rules, analyzer2.rules)
 
     def test_get_file_analyzer_skip_empty_rules(self):
-        '''If a rule has no regexp defined, it's skipped.'''
+        """If a rule has no regexp defined, it's skipped."""
         rule_code = '''
         rules.rule = Rule()
         function rules.rule.action(match)
@@ -117,7 +117,7 @@ class RuleRegistryTests(TestCase):
         self.assertIn('loaded 0 rule(s)', self.logger.output)
 
     def test_rule_analyzer_run_rule_code(self):
-        '''The returned FileAnalyzer runs the metric code.'''
+        """The returned FileAnalyzer runs the metric code."""
 
         class FakeMetric:
 
@@ -145,7 +145,7 @@ class RuleRegistryTests(TestCase):
         self.assertEqual(metric.calls, [{'val': 'bar'}, {'val': 'baz'}])
 
     def test_rule_print_logs(self):
-        '''The print function logs.'''
+        """The print function logs."""
         rule_code = '''
         rules.rule = Rule('foo(?P<val>.*)foo')
         function rules.rule.action(match)
@@ -158,14 +158,14 @@ class RuleRegistryTests(TestCase):
         self.assertIn('value 33', self.logger.output)
 
     def test_rule_without_action(self):
-        '''A rule without action no-ops and doesn't fail.'''
+        """A rule without action no-ops and doesn't fail."""
         rule_code = '''rules.rule = Rule('foo(?P<val>.*)foo')'''
         rule_file = self.tempdir.mkfile(content=rule_code)
         analyzer = self.registry.get_file_analyzer('file.txt', rule_file)
         analyzer.analyze_line('foo bar baz')
 
     def test_rule_with_sintax_error(self):
-        '''A syntax error in rule code raises an error.'''
+        """A syntax error in rule code raises an error."""
         rule_code = '''!WRONG'''
         rule_file = self.tempdir.mkfile(content=rule_code)
         with self.assertRaises(RuleSyntaxError) as context_manager:
@@ -182,7 +182,7 @@ class CreateFileAnalyzersTests(TestCase):
         self.metrics = {'metric1': object(), 'metric2': object()}
 
     def test_create_analyzers(self):
-        '''create_file_analyzers create a FileAnalyzer for each file.'''
+        """create_file_analyzers create a FileAnalyzer for each file."""
         rule_code1 = '''
         rules.rule = Rule('regexp')
         function rules.rule.action(match)

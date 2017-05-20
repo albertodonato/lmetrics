@@ -8,7 +8,7 @@ from toolrack.log import Loggable
 
 
 class RuleSyntaxError(Exception):
-    '''Raised if the rule code contains errors.'''
+    """Raised if the rule code contains errors."""
 
     def __init__(self, filename, message):
         error = message.replace('error loading code: [string "<python>"]', '')
@@ -16,20 +16,20 @@ class RuleSyntaxError(Exception):
 
 
 class FileAnalyzer:
-    '''An analyzer for a file.'''
+    """An analyzer for a file."""
 
     def __init__(self, filename, rules):
         self.filename = filename
         self.rules = rules
 
     def analyze_line(self, line):
-        '''Analyze a line from the file.'''
+        """Analyze a line from the file."""
         for rule in self.rules:
             rule.analyze_line(line)
 
 
 class LuaFileRule:
-    '''A rule for parsing log lines from a Lua file.'''
+    """A rule for parsing log lines from a Lua file."""
 
     def __init__(self, name, lua_rule):
         self.name = name
@@ -37,7 +37,7 @@ class LuaFileRule:
         self._action = lua_rule.action
 
     def analyze_line(self, line):
-        '''Parse a line of input and call the action on match.'''
+        """Parse a line of input and call the action on match."""
         match = self._regexp.search(line)
         if match:
             values = self._convert_values(match.groupdict())
@@ -54,7 +54,7 @@ class LuaFileRule:
 
 
 class RuleRegistry(Loggable):
-    '''A registry for rules to match log files content.'''
+    """A registry for rules to match log files content."""
 
     rule_class = LuaFileRule  # for testing
 
@@ -63,12 +63,12 @@ class RuleRegistry(Loggable):
         self._rules_by_file = {}
 
     def get_file_analyzer(self, filename, rule_filename):
-        '''Return a FileAnalyzer.'''
+        """Return a FileAnalyzer."""
         rules = self._load_rules_from_file(rule_filename)
         return FileAnalyzer(filename, rules)
 
     def _load_rules_from_file(self, path):
-        '''Parse a rule files and return a list of Rules.'''
+        """Parse a rule files and return a list of Rules."""
         filename = os.path.realpath(path)
         rules = self._rules_by_file.get(filename)
 
@@ -84,7 +84,7 @@ class RuleRegistry(Loggable):
         return rules
 
     def _get_rules_from_file(self, filename, metrics):
-        '''Return rules from a file.'''
+        """Return rules from a file."""
         lua = lupa.LuaRuntime(
             unpack_returned_tuples=True, register_builtins=False)
         g = lua.globals()
@@ -110,27 +110,27 @@ class RuleRegistry(Loggable):
         return rules
 
     def _get_lua_print(self, filename):
-        '''Substitute for lua print which logs instead.'''
+        """Substitute for lua print which logs instead."""
         logger = logging.getLogger('lmetrics.rule[{}]'.format(filename))
         return lambda *args: logger.info(' '.join(str(arg) for arg in args))
 
 
 class LuaRule:
-    '''Base class for rules parsed from Lua files.'''
+    """Base class for rules parsed from Lua files."""
 
     def __init__(self, regexp=None):
         self.regexp = regexp
 
     def action(self, match):
-        '''Called for each matched line with match values.
+        """Called for each matched line with match values.
 
         Rules in Lua code should define this method.
 
-        '''
+        """
 
 
 def create_file_analyzers(file_rules_names_map, metrics):
-    '''Return FileAnalyzers for the specified file/rule map.'''
+    """Return FileAnalyzers for the specified file/rule map."""
     registry = RuleRegistry(metrics)
     return [
         registry.get_file_analyzer(filename, rule_filename)

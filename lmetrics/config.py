@@ -1,3 +1,5 @@
+"""Confiuration file handling."""
+
 from collections import namedtuple
 
 import yaml
@@ -10,7 +12,7 @@ Config = namedtuple('Config', ['metrics', 'files'])
 
 
 def load_config(config_fd):
-    '''Load YAML config from file.'''
+    """Load YAML config from file."""
     config = yaml.load(config_fd)
     metrics = _get_metrics(config.get('metrics', {}))
     files = config.get('files', {})
@@ -18,7 +20,7 @@ def load_config(config_fd):
 
 
 def _get_metrics(metrics):
-    '''Return metrics configuration.'''
+    """Return metrics configuration."""
     configs = []
     for name, config in metrics.items():
         metric_type = config.pop('type', '')

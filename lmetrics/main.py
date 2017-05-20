@@ -1,3 +1,5 @@
+"""Script main."""
+
 import argparse
 
 from toolrack.script import ErrorExitMessage
@@ -11,7 +13,7 @@ from .watch import create_watchers
 
 
 class LMetricsScript(PrometheusExporterScript):
-    '''Parse and expose metrics from log files to Prometheus.'''
+    """Parse and expose metrics from log files to Prometheus."""
 
     def configure_argument_parser(self, parser):
         parser.add_argument(
@@ -33,7 +35,7 @@ class LMetricsScript(PrometheusExporterScript):
             await watcher.stop()
 
     def _load_config(self, config_file):
-        '''Load the application configuration.'''
+        """Load the application configuration."""
         try:
             config = load_config(config_file)
         except InvalidMetricType as error:
@@ -43,7 +45,7 @@ class LMetricsScript(PrometheusExporterScript):
         return config
 
     def _create_file_analyzers(self, files, metrics):
-        '''Create FileAnalyzers.'''
+        """Create FileAnalyzers."""
         try:
             return create_file_analyzers(files, metrics)
         except FileNotFoundError as error:

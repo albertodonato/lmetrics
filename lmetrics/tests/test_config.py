@@ -18,7 +18,7 @@ class LoadConfigTests(TestCase):
         self.tempdir = self.useFixture(TempDirFixture())
 
     def test_load_files_section(self):
-        '''The 'files' section is loaded from the config file.'''
+        """The 'files' section is loaded from the config file."""
         config = {'files': {'file1': 'rule1', 'file2': 'rule2'}}
         config_file = self.tempdir.mkfile(content=yaml.dump(config))
         with open(config_file) as fd:
@@ -26,7 +26,7 @@ class LoadConfigTests(TestCase):
         self.assertEqual(result.files, {'file1': 'rule1', 'file2': 'rule2'})
 
     def test_load_metrics_section(self):
-        '''The 'metrics' section is loaded from the config file.'''
+        """The 'metrics' section is loaded from the config file."""
         config = {
             'metrics': {
                 'metric1': {
@@ -48,7 +48,7 @@ class LoadConfigTests(TestCase):
         self.assertEqual(metric2.config, {'buckets': [10, 100, 1000]})
 
     def test_load_metrics_invalid_type(self):
-        '''An error is raised if a metric type is invalid.'''
+        """An error is raised if a metric type is invalid."""
         config = {'metrics': {'metric': {'type': 'unknown'}}}
         file = self.tempdir.mkfile(content=yaml.dump(config))
         with self.assertRaises(InvalidMetricType) as cm, open(file) as fd:

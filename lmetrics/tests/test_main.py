@@ -37,7 +37,7 @@ class LMetricsScriptTests(LoopTestCase):
             content=yaml.dump(self.config))
 
     def test_configure_argument_parser(self):
-        '''An option for the configuration file is present.'''
+        """An option for the configuration file is present."""
 
         parser = self.script.get_parser()
 
@@ -46,7 +46,7 @@ class LMetricsScriptTests(LoopTestCase):
         self.assertIn('configuration file', fh.getvalue())
 
     def test_load_config(self):
-        '''The _load_config method loads the config from file.'''
+        """The _load_config method loads the config from file."""
         with open(self.config_path) as fh:
             config = self.script._load_config(fh)
         metrics = sorted(config.metrics, key=attrgetter('name'))
@@ -54,7 +54,7 @@ class LMetricsScriptTests(LoopTestCase):
         self.assertEqual('metric2', metrics[1].name)
 
     def test_create_application_registers_handlers(self):
-        '''Startup/shutdown handlers are registered with the application.'''
+        """Startup/shutdown handlers are registered with the application."""
         args = self.script.get_parser().parse_args([self.config_path])
         args.config.close()
         application = self.script._create_application(args)
@@ -64,14 +64,14 @@ class LMetricsScriptTests(LoopTestCase):
             self.script.on_application_shutdown, application.on_shutdown)
 
     def test_configure_load_config(self):
-        '''The configure method creates watchers for configured files.'''
+        """The configure method creates watchers for configured files."""
         args = self.script.get_parser().parse_args([self.config_path])
         self.script.configure(args)
         self.assertEqual(len(self.script.watchers), 1)
         self.assertTrue(self.script.watchers[0].name.endswith('file1'))
 
     def test_configure_rule_file_not_found(self):
-        '''An error is raised if a rule file is not found.'''
+        """An error is raised if a rule file is not found."""
         config = {
             'metrics': {'metric1': {'type': 'gauge'}},
             'files': {'file1': 'not-here.lua'}}
@@ -83,7 +83,7 @@ class LMetricsScriptTests(LoopTestCase):
             str(cm.exception), 'Rule file not found: not-here.lua')
 
     def test_configure_rule_file_invalid_rule(self):
-        '''An error is raised if a rule file is invalid.'''
+        """An error is raised if a rule file is invalid."""
         rule_file_path = self.temp_dir.mkfile(content='invalid')
         config = {
             'metrics': {'metric1': {'type': 'gauge'}},
@@ -97,7 +97,7 @@ class LMetricsScriptTests(LoopTestCase):
             'in {}:1: syntax error near <eof>'.format(rule_file_path))
 
     def test_configure_invalid_metric_type(self):
-        '''An error is raised if an invalid metric type is configured.'''
+        """An error is raised if an invalid metric type is configured."""
         config = {'metrics': {'metric': {'type': 'unknown'}}}
         config_path = self.temp_dir.mkfile(content=yaml.dump(config))
         args = self.script.get_parser().parse_args([config_path])
@@ -140,11 +140,11 @@ class LMetricsScriptApplicationTests(AioHTTPTestCase, TestWithFixtures):
 
     @unittest_run_loop
     async def test_watchers_start(self):
-        '''Watchers are started when the app is stated.'''
+        """Watchers are started when the app is stated."""
         self.assertTrue(self.watcher.watch_called)
 
     @unittest_run_loop
     async def test_watcher_stop(self):
-        '''Watchers are stopped when the app is shut down.'''
+        """Watchers are stopped when the app is shut down."""
         await self.app.shutdown()
         self.assertTrue(self.watcher.stop_called)

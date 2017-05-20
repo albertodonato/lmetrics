@@ -17,7 +17,7 @@ from toolrack.log import Loggable
 
 
 class FileWatcher(Loggable):
-    '''Watch a file with inotify and call back with every line.'''
+    """Watch a file with inotify and call back with every line."""
 
     _task = None
 
@@ -32,12 +32,12 @@ class FileWatcher(Loggable):
         self._move_cookies = set()
 
     def watch(self):
-        '''Start watching for the file.'''
+        """Start watching for the file."""
         self._task = self.loop.create_task(self._watch())
         return self._task
 
     async def stop(self):
-        '''Stop watching the file.'''
+        """Stop watching the file."""
         if self._task:
             self._task.cancel()
         try:
@@ -73,13 +73,13 @@ class FileWatcher(Loggable):
                 self._handle_file_event(inotify, event)
 
     def _watch_dir(self, inotify):
-        '''Watch the containing dir.'''
+        """Watch the containing dir."""
         self.logger.debug('watching directory {}'.format(self._dir))
         inotify.watch(
             self._dir, IN_CREATE | IN_MOVED_FROM | IN_MOVED_TO | IN_DELETE)
 
     def _watch_file(self, inotify, path):
-        '''Watch a file.'''
+        """Watch a file."""
         self.logger.debug('watching file {}'.format(path))
         wd = inotify.watch(path, IN_MODIFY)
         self._files.set(path, wd=wd)
@@ -119,7 +119,7 @@ class FileWatcher(Loggable):
             self._read_file_content(file_path)
 
     def _read_file_content(self, path, from_start=False):
-        '''Read and process content of the file.'''
+        """Read and process content of the file."""
         if from_start:
             # force a close, in case file has been overwritten
             self._close_file(path)
@@ -128,12 +128,12 @@ class FileWatcher(Loggable):
         self._stream.receive_data(fd.read())
 
     def _skip_to_file_end(self, path):
-        '''Skip to the end of a file, leaving the file open.'''
+        """Skip to the end of a file, leaving the file open."""
         fd = self._get_file_fd(path)
         fd.seek(0, 2)  # go the the end
 
     def _get_file_fd(self, path):
-        '''Return the file descriptor for a path.'''
+        """Return the file descriptor for a path."""
         file_info = self._files.set(path)
         fd = file_info['fd']
         if fd is None:
@@ -142,7 +142,7 @@ class FileWatcher(Loggable):
         return fd
 
     def _close_file(self, path):
-        '''Close the file if open.'''
+        """Close the file if open."""
         file_info = self._files[path]
         if not file_info:
             return
@@ -154,14 +154,14 @@ class FileWatcher(Loggable):
 
 
 def create_watchers(analyzers, loop):
-    '''Return a list of FileWatchers for FileAnalyzers.'''
+    """Return a list of FileWatchers for FileAnalyzers."""
     return [
         FileWatcher(analyzer.filename, analyzer.analyze_line, loop=loop)
         for analyzer in analyzers]
 
 
 class WatchedFiles:
-    '''Track info about watched files.'''
+    """Track info about watched files."""
 
     _DEFAULT = object
 
@@ -170,7 +170,7 @@ class WatchedFiles:
         self._path_to_info = {}
 
     def set(self, path, wd=_DEFAULT, fd=_DEFAULT):
-        '''Set and return info about a watched file.'''
+        """Set and return info about a watched file."""
         file_info = self._path_to_info.setdefault(
             path, {'path': path, 'wd': None, 'fd': None})
 
@@ -188,21 +188,21 @@ class WatchedFiles:
         return file_info
 
     def paths(self):
-        '''Return an iterator yielding file paths.'''
+        """Return an iterator yielding file paths."""
         return self._path_to_info.keys()
 
     def wds(self):
-        '''Return an iterator yielding watch descriptors.'''
+        """Return an iterator yielding watch descriptors."""
         return self._wd_to_path.keys()
 
     def __getitem__(self, key):
-        '''Return info by watch descriptor or path.'''
+        """Return info by watch descriptor or path."""
         if isinstance(key, int):
             return self._get_by_wd(key)
         return self._get_by_path(key)
 
     def __delitem__(self, key):
-        '''Delete an item by watch descriptor or path.'''
+        """Delete an item by watch descriptor or path."""
         if isinstance(key, int):
             path = self._get_by_wd(key)['path']
             del self._wd_to_path[key]
@@ -212,17 +212,17 @@ class WatchedFiles:
         del self._path_to_info[path]
 
     def __contains__(self, key):
-        '''Return whether info for a file is present.'''
+        """Return whether info for a file is present."""
         if isinstance(key, int):
             return key in self._wd_to_path
         else:
             return key in self._path_to_info
 
     def _get_by_wd(self, wd):
-        '''Return info for a file by watch descriptor.'''
+        """Return info for a file by watch descriptor."""
         path = self._wd_to_path.get(wd)
         return self._get_by_path(path)
 
     def _get_by_path(self, path):
-        '''Return info for a file by path.'''
+        """Return info for a file by path."""
         return self._path_to_info.get(path)
