@@ -97,10 +97,10 @@ Each rule file is run in a separate Lua environment, which has the
 following global variables defined:
 
 - ``metrics``: a table containing all the defined metrics, accessible as
-   ``metrics.<metric-name>``
+  ``metrics.<metric-name>``
 - ``rules``: a table where define rules must be added to get exported, (see the
-   ``rules.a_rule = a_rule`` statement in the example above).  All rules in the
-   table are checked, so the name is not relevant.
+  ``rules.a_rule = a_rule`` statement in the example above).  All rules in the
+  table are checked, so the name is not relevant.
 
 
 Metric types
@@ -110,26 +110,26 @@ Metrics ojbects have the same API (they're effectively the same objects) as the
 ones defined in the `Prometheus python client`_; specifically there are four
 supported metrics types:
 
-- ``Counter``: track totals
+- *Counter*: track totals
 
 .. code:: lua
 
     metrics.sample_counter.inc()  -- increment by 1
     metrics.sample_counter.inc(5.2)  -- increment by 5.2
 
-- ``Summary``: tracks size and number of events
+- *Summary*: tracks size and number of events
 
 .. code:: lua
 
     metrics.sample_summary.observe(123.3)  -- add an event with value 123.3
 
-- ``Histogram``: tracks size and number of events in buckets
+- *Histogram*: tracks size and number of events in buckets
 
 .. code:: lua
 
     metrics.sample_histogram.observe(123.3)  -- add an event with value 123.3
 
-- ``Gauge``: tracks instantaneous values
+- *Gauge*: tracks instantaneous values
 
 .. code:: lua
 
