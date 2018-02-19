@@ -26,7 +26,7 @@ config = {
         'lupa',
         'prometheus-client',
         'PyYaml',
-        'prometheus-aioexporter',
+        'prometheus-aioexporter >= 1.4.0',
         'toolrack'],
     'tests_require': tests_require,
     'extras_require': {'testing': tests_require},

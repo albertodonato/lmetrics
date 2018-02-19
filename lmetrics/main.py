@@ -26,7 +26,7 @@ class LMetricsScript(PrometheusExporterScript):
         analyzers = self._create_file_analyzers(config.files, metrics)
         self.watchers = create_watchers(analyzers, self.loop)
 
-    def on_application_startup(self, application):
+    async def on_application_startup(self, application):
         for watcher in self.watchers:
             watcher.watch()
 

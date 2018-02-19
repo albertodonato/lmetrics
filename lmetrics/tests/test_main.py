@@ -53,16 +53,6 @@ class LMetricsScriptTests(LoopTestCase):
         self.assertEqual('metric1', metrics[0].name)
         self.assertEqual('metric2', metrics[1].name)
 
-    def test_create_application_registers_handlers(self):
-        """Startup/shutdown handlers are registered with the application."""
-        args = self.script.get_parser().parse_args([self.config_path])
-        args.config.close()
-        application = self.script._create_application(args)
-        self.assertIn(
-            self.script.on_application_startup, application.on_startup)
-        self.assertIn(
-            self.script.on_application_shutdown, application.on_shutdown)
-
     def test_configure_load_config(self):
         """The configure method creates watchers for configured files."""
         args = self.script.get_parser().parse_args([self.config_path])
@@ -136,7 +126,8 @@ class LMetricsScriptApplicationTests(AioHTTPTestCase, TestWithFixtures):
         self.script.watchers = [self.watcher]
         args = self.script.get_parser().parse_args([self.config_path])
         args.config.close()
-        return self.script._create_application(args)
+        exporter = self.script._get_exporter(args)
+        return exporter.app
 
     @unittest_run_loop
     async def test_watchers_start(self):
