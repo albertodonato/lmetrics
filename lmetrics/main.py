@@ -3,7 +3,6 @@
 import argparse
 
 from toolrack.script import ErrorExitMessage
-
 from prometheus_aioexporter.script import PrometheusExporterScript
 from prometheus_aioexporter.metric import InvalidMetricType
 

@@ -47,7 +47,7 @@ class LMetricsScriptTests(LoopTestCase):
 
     def test_load_config(self):
         """The _load_config method loads the config from file."""
-        with open(self.config_path) as fh:
+        with self.config_path.open() as fh:
             config = self.script._load_config(fh)
         metrics = sorted(config.metrics, key=attrgetter('name'))
         self.assertEqual('metric1', metrics[0].name)
@@ -55,7 +55,7 @@ class LMetricsScriptTests(LoopTestCase):
 
     def test_configure_load_config(self):
         """The configure method creates watchers for configured files."""
-        args = self.script.get_parser().parse_args([self.config_path])
+        args = self.script.get_parser().parse_args([str(self.config_path)])
         self.script.configure(args)
         self.assertEqual(len(self.script.watchers), 1)
         self.assertTrue(self.script.watchers[0].name.endswith('file1'))
@@ -66,7 +66,7 @@ class LMetricsScriptTests(LoopTestCase):
             'metrics': {'metric1': {'type': 'gauge'}},
             'files': {'file1': 'not-here.lua'}}
         config_path = self.temp_dir.mkfile(content=yaml.dump(config))
-        args = self.script.get_parser().parse_args([config_path])
+        args = self.script.get_parser().parse_args([str(config_path)])
         with self.assertRaises(ErrorExitMessage) as cm:
             self.script.configure(args)
         self.assertEqual(
@@ -79,7 +79,7 @@ class LMetricsScriptTests(LoopTestCase):
             'metrics': {'metric1': {'type': 'gauge'}},
             'files': {'file1': rule_file_path}}
         config_path = self.temp_dir.mkfile(content=yaml.dump(config))
-        args = self.script.get_parser().parse_args([config_path])
+        args = self.script.get_parser().parse_args([str(config_path)])
         with self.assertRaises(ErrorExitMessage) as cm:
             self.script.configure(args)
         self.assertEqual(
@@ -90,7 +90,7 @@ class LMetricsScriptTests(LoopTestCase):
         """An error is raised if an invalid metric type is configured."""
         config = {'metrics': {'metric': {'type': 'unknown'}}}
         config_path = self.temp_dir.mkfile(content=yaml.dump(config))
-        args = self.script.get_parser().parse_args([config_path])
+        args = self.script.get_parser().parse_args([str(config_path)])
         with self.assertRaises(ErrorExitMessage) as cm:
             self.script.configure(args)
         self.assertEqual(
@@ -124,7 +124,7 @@ class LMetricsScriptApplicationTests(AioHTTPTestCase, TestWithFixtures):
     async def get_application(self):
         self.script = LMetricsScript(loop=self.loop)
         self.script.watchers = [self.watcher]
-        args = self.script.get_parser().parse_args([self.config_path])
+        args = self.script.get_parser().parse_args([str(self.config_path)])
         args.config.close()
         exporter = self.script._get_exporter(args)
         return exporter.app

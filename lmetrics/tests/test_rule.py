@@ -1,19 +1,20 @@
-from operator import attrgetter
 from collections import namedtuple
 import logging
+from operator import attrgetter
+from pathlib import Path
 
 from fixtures import LoggerFixture
-
 from toolrack.testing import (
     TestCase,
-    TempDirFixture)
+    TempDirFixture,
+)
 
 from ..rule import (
     RuleSyntaxError,
     FileAnalyzer,
     LuaFileRule,
     RuleRegistry,
-    create_file_analyzers
+    create_file_analyzers,
 )
 
 
@@ -45,7 +46,7 @@ class FileAnalyzerTests(TestCase):
         """analyze_line calls all rules with every line."""
         rule1 = FakeRule()
         rule2 = FakeRule()
-        analyzer = FileAnalyzer('file.txt', [rule1, rule2])
+        analyzer = FileAnalyzer(Path('file.txt'), [rule1, rule2])
         analyzer.analyze_line('line1')
         analyzer.analyze_line('line2')
         self.assertEqual(rule1.lines, ['line1', 'line2'])
@@ -57,7 +58,7 @@ class LuaFileRuleTests(TestCase):
     def test_analyze_line_matching(self):
         """analyze_line calls the LuaRule if the regexp matches."""
         lua_rule = FakeLuaRule('foo(?P<val>.*)foo')
-        rule = LuaFileRule('file.txt', lua_rule)
+        rule = LuaFileRule(Path('file.txt'), lua_rule)
         rule.analyze_line('foobarfoo')
         rule.analyze_line('foobazfoo')
         self.assertEqual(lua_rule.calls, [{'val': 'bar'}, {'val': 'baz'}])
@@ -65,7 +66,7 @@ class LuaFileRuleTests(TestCase):
     def test_analyze_line_no_match(self):
         """analyze_line doesn't call the rule if the regexp doesn't match."""
         lua_rule = FakeLuaRule('foo(?P<val>.*)foo')
-        rule = LuaFileRule('file.txt', lua_rule)
+        rule = LuaFileRule(Path('file.txt'), lua_rule)
         rule.analyze_line('barfoobar')
         self.assertEqual(lua_rule.calls, [])
 
@@ -75,6 +76,7 @@ class RuleRegistryTests(TestCase):
     def setUp(self):
         super().setUp()
         self.tempdir = self.useFixture(TempDirFixture())
+        self.logfile = self.tempdir.mkfile(path='file.txt')
         # fake metrics
         self.metrics = {'metric1': object(), 'metric2': object()}
         self.registry = RuleRegistry(self.metrics)
@@ -85,9 +87,9 @@ class RuleRegistryTests(TestCase):
     def test_get_file_analyzer(self):
         """get_file_analyzer returns a FileAnalyzer instance."""
         rule_file = self.tempdir.mkfile()
-        analyzer = self.registry.get_file_analyzer('file.txt', rule_file)
+        analyzer = self.registry.get_file_analyzer(self.logfile, rule_file)
         self.assertIsInstance(analyzer, FileAnalyzer)
-        self.assertEqual(analyzer.filename, 'file.txt')
+        self.assertEqual(analyzer.path, self.logfile)
 
     def test_get_file_analyzer_caches_rules(self):
         """LuaFileRules are created once for each Lua file."""
@@ -137,7 +139,7 @@ class RuleRegistryTests(TestCase):
         end
         '''
         rule_file = self.tempdir.mkfile(content=rule_code)
-        analyzer = registry.get_file_analyzer('file.txt', rule_file)
+        analyzer = registry.get_file_analyzer(self.logfile, rule_file)
         analyzer.analyze_line('foobarfoo')
         analyzer.analyze_line('baz foo')
         analyzer.analyze_line('foobazfoo')
@@ -153,7 +155,7 @@ class RuleRegistryTests(TestCase):
         end
         '''
         rule_file = self.tempdir.mkfile(content=rule_code)
-        analyzer = self.registry.get_file_analyzer('file.txt', rule_file)
+        analyzer = self.registry.get_file_analyzer(self.logfile, rule_file)
         analyzer.analyze_line('foo33foo')
         self.assertIn('value 33', self.logger.output)
 
@@ -161,7 +163,7 @@ class RuleRegistryTests(TestCase):
         """A rule without action no-ops and doesn't fail."""
         rule_code = '''rules.rule = Rule('foo(?P<val>.*)foo')'''
         rule_file = self.tempdir.mkfile(content=rule_code)
-        analyzer = self.registry.get_file_analyzer('file.txt', rule_file)
+        analyzer = self.registry.get_file_analyzer(self.logfile, rule_file)
         analyzer.analyze_line('foo bar baz')
 
     def test_rule_with_sintax_error(self):
@@ -169,7 +171,7 @@ class RuleRegistryTests(TestCase):
         rule_code = '''!WRONG'''
         rule_file = self.tempdir.mkfile(content=rule_code)
         with self.assertRaises(RuleSyntaxError) as context_manager:
-            self.registry.get_file_analyzer('file.txt', rule_file)
+            self.registry.get_file_analyzer(self.logfile, rule_file)
         self.assertIn('unexpected symbol', str(context_manager.exception))
 
 
@@ -196,12 +198,12 @@ class CreateFileAnalyzersTests(TestCase):
         '''
         rule_file2 = self.tempdir.mkfile(content=rule_code2)
         rules_map = {
-            'file1.txt': rule_file1,
-            'file2.txt': rule_file2}
+            Path('file1.txt').absolute(): rule_file1,
+            Path('file2.txt').absolute(): rule_file2}
         analyzers = create_file_analyzers(rules_map, self.metrics)
-        analyzer1, analyzer2 = sorted(analyzers, key=attrgetter('filename'))
-        self.assertEqual(analyzer1.filename, 'file1.txt')
-        self.assertEqual(analyzer2.filename, 'file2.txt')
+        analyzer1, analyzer2 = sorted(analyzers, key=attrgetter('path'))
+        self.assertEqual(analyzer1.path, Path('file1.txt').absolute())
+        self.assertEqual(analyzer2.path, Path('file2.txt').absolute())
         # Each file uses a different rule (since they come from different
         # rule files)
         self.assertIsNot(analyzer1.rules[0], analyzer2.rules[0])

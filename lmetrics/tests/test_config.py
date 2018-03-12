@@ -1,12 +1,11 @@
 from operator import attrgetter
 
-import yaml
-
+from prometheus_aioexporter.metric import InvalidMetricType
 from toolrack.testing import (
     TestCase,
-    TempDirFixture)
-
-from prometheus_aioexporter.metric import InvalidMetricType
+    TempDirFixture,
+)
+import yaml
 
 from ..config import load_config
 
@@ -21,7 +20,7 @@ class LoadConfigTests(TestCase):
         """The 'files' section is loaded from the config file."""
         config = {'files': {'file1': 'rule1', 'file2': 'rule2'}}
         config_file = self.tempdir.mkfile(content=yaml.dump(config))
-        with open(config_file) as fd:
+        with config_file.open() as fd:
             result = load_config(fd)
         self.assertEqual(result.files, {'file1': 'rule1', 'file2': 'rule2'})
 
@@ -37,7 +36,7 @@ class LoadConfigTests(TestCase):
                     'description': 'metric two',
                     'buckets': [10, 100, 1000]}}}
         config_file = self.tempdir.mkfile(content=yaml.dump(config))
-        with open(config_file) as fd:
+        with config_file.open() as fd:
             result = load_config(fd)
         metric1, metric2 = sorted(result.metrics, key=attrgetter('name'))
         self.assertEqual(metric1.type, 'summary')
@@ -50,8 +49,8 @@ class LoadConfigTests(TestCase):
     def test_load_metrics_invalid_type(self):
         """An error is raised if a metric type is invalid."""
         config = {'metrics': {'metric': {'type': 'unknown'}}}
-        file = self.tempdir.mkfile(content=yaml.dump(config))
-        with self.assertRaises(InvalidMetricType) as cm, open(file) as fd:
+        conf = self.tempdir.mkfile(content=yaml.dump(config))
+        with self.assertRaises(InvalidMetricType) as cm, conf.open() as fd:
             load_config(fd)
         self.assertEqual(
             str(cm.exception),

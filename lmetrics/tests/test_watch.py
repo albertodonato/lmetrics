@@ -1,22 +1,22 @@
-import os
-from collections import namedtuple
-import unittest
 import asyncio
-import shutil
+from collections import namedtuple
+from pathlib import Path
+import unittest
 
 import asynctest
-
 from toolrack.testing import (
     TempDirFixture,
-    TestCase as ToolrackTestCase)
+    TestCase as ToolrackTestCase,
+)
 
 from ..watch import (
-    FileWatcher,
     create_watchers,
-    WatchedFiles)
+    FileWatcher,
+    WatchedFiles,
+)
 
 
-FakeAnalyzer = namedtuple('FakeAnalyzer', ['filename', 'analyze_line'])
+FakeAnalyzer = namedtuple('FakeAnalyzer', ['path', 'analyze_line'])
 
 
 class FileWatcherTests(asynctest.TestCase, ToolrackTestCase):
@@ -24,7 +24,7 @@ class FileWatcherTests(asynctest.TestCase, ToolrackTestCase):
     def setUp(self):
         super().setUp()
         self.dir = self.useFixture(TempDirFixture())
-        self.filename = os.path.join(self.dir.path, 'file.txt')
+        self.filename = self.dir.path / 'file.txt'
         self.calls = []
         self.watcher = FileWatcher(
             self.filename, self.calls.append, loop=self.loop)
@@ -54,7 +54,7 @@ class FileWatcherTests(asynctest.TestCase, ToolrackTestCase):
         self.assertEqual(self.calls, ['line1', 'line2'])
 
         # append content to the file
-        with open(self.filename, 'a') as fd:
+        with self.filename.open('a') as fd:
             fd.write('line3\nline4\n')
         await asyncio.sleep(0.1)  # let the loop run
         await self.watcher.stop()
@@ -62,7 +62,7 @@ class FileWatcherTests(asynctest.TestCase, ToolrackTestCase):
 
     async def test_file_appended_open(self):
         """If new content is appended to an open file, it's read."""
-        with open(self.dir.mkfile(path='file.txt'), 'w') as fd:
+        with self.dir.mkfile(path='file.txt').open('w') as fd:
             self.watcher.watch()
             fd.write('line1\nline2\n')
             fd.flush()
@@ -84,7 +84,7 @@ class FileWatcherTests(asynctest.TestCase, ToolrackTestCase):
         # no content is read from the other file
         self.assertEqual(self.calls, [])
 
-        shutil.move(file2, self.filename)
+        file2.rename(self.filename)
         await asyncio.sleep(0.1)  # let the loop run
         await self.watcher.stop()
         self.assertEqual(self.calls, ['line1', 'line2'])
@@ -95,11 +95,11 @@ class FileWatcherTests(asynctest.TestCase, ToolrackTestCase):
         self.watcher.watch()
         await asyncio.sleep(0.1)  # let the loop run
         self.assertEqual(self.calls, ['line1', 'line2'])
-        new_filename = os.path.join(self.dir.path, 'file2.txt')
-        shutil.move(self.filename, new_filename)
+        new_filename = self.dir.path / 'file2.txt'
+        self.filename.rename(new_filename)
         await asyncio.sleep(0.1)  # let the loop run
         # append content to the new file
-        with open(new_filename, 'a') as fd:
+        with new_filename.open('a') as fd:
             fd.write('line3\nline4\n')
         await asyncio.sleep(0.1)  # let the loop run
         await self.watcher.stop()
@@ -114,7 +114,7 @@ class FileWatcherTests(asynctest.TestCase, ToolrackTestCase):
         self.assertEqual(self.calls, ['line1', 'line2'])
 
         # delete and recreate the file
-        os.unlink(self.filename)
+        self.filename.unlink()
         self.dir.mkfile(path='file.txt', content='line3\nline4\n')
         await asyncio.sleep(0.1)  # let the loop run
         await self.watcher.stop()
@@ -127,7 +127,7 @@ class FileWatcherGlobTests(asynctest.TestCase, ToolrackTestCase):
         super().setUp()
         self.dir = self.useFixture(TempDirFixture())
         self.calls = []
-        glob_path = os.path.join(self.dir.path, 'file*.txt')
+        glob_path = self.dir.path / 'file*.txt'
         self.watcher = FileWatcher(
             glob_path, self.calls.append, loop=self.loop)
 
@@ -161,8 +161,8 @@ class FileWatcherGlobTests(asynctest.TestCase, ToolrackTestCase):
         # nothing is read so far
         self.assertEqual(self.calls, [])
 
-        new_filename = os.path.join(self.dir.path, 'file.txt')
-        shutil.move(other_filename, new_filename)
+        new_filename = self.dir.path / 'file.txt'
+        other_filename.rename(new_filename)
         await asyncio.sleep(0.1)  # let the loop run
         # the file is now read
         self.assertEqual(self.calls, ['some content'])
@@ -177,12 +177,12 @@ class FileWatcherGlobTests(asynctest.TestCase, ToolrackTestCase):
         self.assertEqual(self.calls, ['some content'])
 
         # rename the file
-        new_filename = os.path.join(self.dir.path, 'other.txt')
-        shutil.move(filename, new_filename)
+        new_filename = self.dir.path / 'other.txt'
+        filename.rename(new_filename)
         await asyncio.sleep(0.1)  # let the loop run
 
         # append content to the new file
-        with open(new_filename, 'a') as fd:
+        with new_filename.open('a') as fd:
             fd.write('more content\n')
         await asyncio.sleep(0.1)  # let the loop run
 
@@ -199,8 +199,8 @@ class FileWatcherGlobTests(asynctest.TestCase, ToolrackTestCase):
         self.assertEqual(self.calls, ['some content'])
 
         # rename the file, new name still matches the glob
-        new_filename = os.path.join(self.dir.path, 'file-new.txt')
-        shutil.move(filename, new_filename)
+        new_filename = self.dir.path / 'file-new.txt'
+        filename.rename(new_filename)
         await asyncio.sleep(0.1)  # let the loop run
 
         # the new content is not read again
@@ -216,12 +216,12 @@ class FileWatcherGlobTests(asynctest.TestCase, ToolrackTestCase):
         self.assertEqual(self.calls, ['some content'])
 
         # rename the file, new name still matches the glob
-        new_filename = os.path.join(self.dir.path, 'file-new.txt')
-        shutil.move(filename, new_filename)
+        new_filename = self.dir.path / 'file-new.txt'
+        filename.rename(new_filename)
         await asyncio.sleep(0.1)  # let the loop run
 
         # append content to the new file
-        with open(new_filename, 'a') as fd:
+        with new_filename.open('a') as fd:
             fd.write('more content\n')
         await asyncio.sleep(0.1)  # let the loop run
 
@@ -238,9 +238,8 @@ class CreateWatchersTests(unittest.TestCase):
         analyzer1 = FakeAnalyzer('file1', lambda: True)
         analyzer2 = FakeAnalyzer('file2', lambda: True)
         watcher1, watcher2 = create_watchers([analyzer1, analyzer2], fake_loop)
-        cwd = os.getcwd()
-        self.assertEqual(watcher1.full_path, os.path.join(cwd, 'file1'))
-        self.assertEqual(watcher2.full_path, os.path.join(cwd, 'file2'))
+        self.assertEqual(watcher1.path, Path.cwd() / 'file1')
+        self.assertEqual(watcher2.path, Path.cwd() / 'file2')
 
 
 class WatchedFilesTests(unittest.TestCase):

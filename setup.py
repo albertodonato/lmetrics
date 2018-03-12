@@ -27,7 +27,7 @@ config = {
         'prometheus-client',
         'PyYaml',
         'prometheus-aioexporter >= 1.4.0',
-        'toolrack'],
+        'toolrack >= 2.0.1'],
     'tests_require': tests_require,
     'extras_require': {'testing': tests_require},
     'keywords': 'log metric prometheus exporter',

@@ -1,8 +1,6 @@
-import os
-import contextlib
-from fnmatch import fnmatch
-from glob import iglob
 import asyncio
+import contextlib
+from pathlib import Path
 
 from butter.asyncio.inotify import Inotify_async
 from butter.inotify import (
@@ -10,8 +8,8 @@ from butter.inotify import (
     IN_DELETE,
     IN_MOVED_FROM,
     IN_MOVED_TO,
-    IN_MODIFY)
-
+    IN_MODIFY,
+)
 from toolrack.async import StreamHelper
 from toolrack.log import Loggable
 
@@ -23,9 +21,8 @@ class FileWatcher(Loggable):
 
     def __init__(self, path, callback, encoding='utf-8', loop=None):
         self.loop = loop or asyncio.get_event_loop()
-        self._dir, self._filename = os.path.split(os.path.realpath(path))
-        self.full_path = os.path.join(self._dir, self._filename)
-        self.name = self.full_path  # for the logger
+        self.path = Path(path).absolute()
+        self.name = str(self.path)  # for the logger
         self._encoding = encoding
         self._stream = StreamHelper(callback=callback)
         self._files = WatchedFiles()
@@ -59,7 +56,8 @@ class FileWatcher(Loggable):
         # always watch the containing directory
         self._watch_dir(inotify)
 
-        for file_path in iglob(self.full_path):
+        # split the basename which might contain glob chars
+        for file_path in self.path.parent.glob(self.path.name):
             self._read_file_content(file_path, from_start=True)
             self._watch_file(inotify, file_path)
 
@@ -74,20 +72,20 @@ class FileWatcher(Loggable):
 
     def _watch_dir(self, inotify):
         """Watch the containing dir."""
-        self.logger.debug('watching directory {}'.format(self._dir))
+        self.logger.debug('watching directory {}'.format(self.path.parent))
         inotify.watch(
-            self._dir, IN_CREATE | IN_MOVED_FROM | IN_MOVED_TO | IN_DELETE)
+            str(self.path.parent),
+            IN_CREATE | IN_MOVED_FROM | IN_MOVED_TO | IN_DELETE)
 
     def _watch_file(self, inotify, path):
         """Watch a file."""
         self.logger.debug('watching file {}'.format(path))
-        wd = inotify.watch(path, IN_MODIFY)
+        wd = inotify.watch(str(path), IN_MODIFY)
         self._files.set(path, wd=wd)
 
     def _handle_dir_event(self, inotify, event):
-        file_path = os.path.join(
-            self._dir, event.filename.decode(self._encoding))
-        if not fnmatch(file_path, self.full_path):
+        file_path = self.path.parent / event.filename.decode(self._encoding)
+        if not file_path.match(str(self.path)):
             return
         if event.create_event or event.moved_to_event:
             if event.cookie in self._move_cookies:
@@ -137,7 +135,7 @@ class FileWatcher(Loggable):
         file_info = self._files.set(path)
         fd = file_info['fd']
         if fd is None:
-            fd = open(path, encoding=self._encoding)
+            fd = path.open(encoding=self._encoding)
             self._files.set(path, fd=fd)
         return fd
 
@@ -156,7 +154,7 @@ class FileWatcher(Loggable):
 def create_watchers(analyzers, loop):
     """Return a list of FileWatchers for FileAnalyzers."""
     return [
-        FileWatcher(analyzer.filename, analyzer.analyze_line, loop=loop)
+        FileWatcher(analyzer.path, analyzer.analyze_line, loop=loop)
         for analyzer in analyzers]
 
 
