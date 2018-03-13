@@ -1,6 +1,13 @@
-from setuptools import setup, find_packages
+from pathlib import Path
+from setuptools import (
+    find_packages,
+    setup,
+)
 
-from lmetrics import __version__, __doc__ as description
+from lmetrics import (
+    __doc__ as description,
+    __version__,
+)
 
 tests_require = ['asynctest', 'fixtures']
 
@@ -9,7 +16,7 @@ config = {
     'version': __version__,
     'license': 'GPLv3+',
     'description': description,
-    'long_description': open('README.rst').read(),
+    'long_description': Path('README.rst').read_text(),
     'author': 'Alberto Donato',
     'author_email': 'alberto.donato@gmail.com',
     'maintainer': 'Alberto Donato',
