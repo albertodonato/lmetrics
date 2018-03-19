@@ -1,22 +1,21 @@
 from io import StringIO
 from operator import attrgetter
 
-import yaml
-
 from aiohttp.test_utils import (
     AioHTTPTestCase,
-    unittest_run_loop)
-
+    unittest_run_loop,
+)
+from asynctest import TestCase
 from fixtures import TestWithFixtures
+import yaml
 
-from toolrack.testing.async import LoopTestCase
 from toolrack.testing import TempDirFixture
 from toolrack.script import ErrorExitMessage
 
 from ..main import LMetricsScript
 
 
-class LMetricsScriptTests(LoopTestCase):
+class LMetricsScriptTests(TestCase, TestWithFixtures):
 
     def setUp(self):
         super().setUp()

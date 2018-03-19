@@ -9,6 +9,7 @@ from lmetrics import (
     __version__,
 )
 
+
 tests_require = ['asynctest', 'fixtures']
 
 config = {
@@ -34,7 +35,7 @@ config = {
         'prometheus-client',
         'PyYaml',
         'prometheus-aioexporter >= 1.4.0',
-        'toolrack >= 2.0.1'],
+        'toolrack >= 2.1.0'],
     'tests_require': tests_require,
     'extras_require': {'testing': tests_require},
     'keywords': 'log metric prometheus exporter',

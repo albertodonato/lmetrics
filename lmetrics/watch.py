@@ -10,7 +10,7 @@ from butter.inotify import (
     IN_MOVED_TO,
     IN_MODIFY,
 )
-from toolrack.async import StreamHelper
+from toolrack.aio import StreamHelper
 from toolrack.log import Loggable
 
 
