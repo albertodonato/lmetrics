@@ -94,8 +94,8 @@ class LMetricsScriptTests(TestCase, TestWithFixtures):
             self.script.configure(args)
         self.assertEqual(
             str(cm.exception),
-            'Invalid type for metric: must be one of counter, gauge, '
-            'histogram, summary')
+            'Invalid type for metric: must be one of counter, enum, gauge, '
+            'histogram, info, summary')
 
 
 class FakeWatcher:

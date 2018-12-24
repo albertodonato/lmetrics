@@ -54,5 +54,5 @@ class LoadConfigTests(TestCase):
             load_config(fd)
         self.assertEqual(
             str(cm.exception),
-            'Invalid type for metric: must be one of counter, gauge, '
-            'histogram, summary')
+            'Invalid type for metric: must be one of counter, enum, gauge, '
+            'histogram, info, summary')
