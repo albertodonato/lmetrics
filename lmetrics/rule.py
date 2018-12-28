@@ -1,9 +1,8 @@
-import re
 import logging
 from pathlib import Path
+import re
 
 import lupa
-
 from toolrack.log import Loggable
 
 
@@ -77,7 +76,8 @@ class RuleRegistry(Loggable):
                 'loaded {} rule(s) from {}'.format(len(lua_rules), path))
             rules = [
                 self.rule_class(name, lua_rule)
-                for name, lua_rule in lua_rules.items()]
+                for name, lua_rule in lua_rules.items()
+            ]
             self._rules_by_file[path] = rules
 
         return rules
@@ -133,4 +133,5 @@ def create_file_analyzers(file_rules_names_map, metrics):
     registry = RuleRegistry(metrics)
     return [
         registry.get_file_analyzer(path, rule_filename)
-        for path, rule_filename in file_rules_names_map.items()]
+        for path, rule_filename in file_rules_names_map.items()
+    ]

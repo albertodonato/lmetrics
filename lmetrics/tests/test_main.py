@@ -1,99 +1,107 @@
 from io import StringIO
-from operator import attrgetter
+from pathlib import Path
 
-from aiohttp.test_utils import (
-    AioHTTPTestCase,
-    unittest_run_loop,
-)
-from asynctest import TestCase
-from fixtures import TestWithFixtures
-import yaml
-
-from toolrack.testing import TempDirFixture
+import pytest
 from toolrack.script import ErrorExitMessage
+import yaml
 
 from ..main import LMetricsScript
 
 
-class LMetricsScriptTests(TestCase, TestWithFixtures):
+@pytest.fixture
+def script(event_loop):
+    yield LMetricsScript(loop=event_loop)
 
-    def setUp(self):
-        super().setUp()
-        self.script = LMetricsScript(loop=self.loop)
-        self.temp_dir = self.useFixture(TempDirFixture())
-        self.rule_file_path = self.temp_dir.mkfile()
-        self.config = {
-            'metrics': {
-                'metric1': {
-                    'type': 'summary',
-                    'description': 'metric one'},
-                'metric2': {
-                    'type': 'histogram',
-                    'description': 'metric two'}},
-            'files': {
-                'file1': self.rule_file_path}}
-        self.config_path = self.temp_dir.mkfile(
-            content=yaml.dump(self.config))
 
-    def test_configure_argument_parser(self):
+@pytest.fixture
+def rule_file(tmpdir):
+    rule_file = Path(tmpdir / 'rule')
+    rule_file.write_text('')
+    yield rule_file
+
+
+@pytest.fixture
+def config_file(tmpdir, rule_file):
+    config = {
+        'metrics': {
+            'metric1': {
+                'type': 'summary',
+                'description': 'metric one'
+            },
+            'metric2': {
+                'type': 'histogram',
+                'description': 'metric two'
+            }
+        },
+        'files': {
+            'file1': str(rule_file)
+        }
+    }
+    config_file = Path(tmpdir / 'config.yaml')
+    config_file.write_text(yaml.dump(config))
+    yield config_file
+
+
+class TestLMetricsScript:
+
+    def test_configure_argument_parser(self, script):
         """An option for the configuration file is present."""
 
-        parser = self.script.get_parser()
-
+        parser = script.get_parser()
         fh = StringIO()
         parser.print_help(file=fh)
-        self.assertIn('configuration file', fh.getvalue())
+        assert 'configuration file' in fh.getvalue()
 
-    def test_load_config(self):
+    def test_load_config(self, script, config_file):
         """The _load_config method loads the config from file."""
-        with self.config_path.open() as fh:
-            config = self.script._load_config(fh)
-        metrics = sorted(config.metrics, key=attrgetter('name'))
-        self.assertEqual('metric1', metrics[0].name)
-        self.assertEqual('metric2', metrics[1].name)
+        with config_file.open() as fh:
+            config = script._load_config(fh)
+        metrics = sorted(metric.name for metric in config.metrics)
+        assert metrics == ['metric1', 'metric2']
 
-    def test_configure_load_config(self):
+    def test_configure_load_config(self, script, config_file):
         """The configure method creates watchers for configured files."""
-        args = self.script.get_parser().parse_args([str(self.config_path)])
-        self.script.configure(args)
-        self.assertEqual(len(self.script.watchers), 1)
-        self.assertTrue(self.script.watchers[0].name.endswith('file1'))
+        args = script.get_parser().parse_args([str(config_file)])
+        script.configure(args)
+        assert len(script.watchers) == 1
+        assert script.watchers[0].name.endswith('file1')
 
-    def test_configure_rule_file_not_found(self):
+    def test_configure_rule_file_not_found(self, script, config_file):
         """An error is raised if a rule file is not found."""
         config = {
-            'metrics': {'metric1': {'type': 'gauge'}},
-            'files': {'file1': 'not-here.lua'}}
-        config_path = self.temp_dir.mkfile(content=yaml.dump(config))
-        args = self.script.get_parser().parse_args([str(config_path)])
-        with self.assertRaises(ErrorExitMessage) as cm:
-            self.script.configure(args)
-        self.assertEqual(
-            str(cm.exception), 'Rule file not found: not-here.lua')
+            'metrics': {
+                'metric1': {
+                    'type': 'gauge'
+                }
+            },
+            'files': {
+                'file1': 'not-here.lua'
+            }
+        }
+        config_file.write_text(yaml.dump(config))
+        args = script.get_parser().parse_args([str(config_file)])
+        with pytest.raises(ErrorExitMessage) as err:
+            script.configure(args)
+        assert str(err.value) == 'Rule file not found: not-here.lua'
 
-    def test_configure_rule_file_invalid_rule(self):
+    def test_configure_rule_file_invalid_rule(
+            self, script, config_file, rule_file):
         """An error is raised if a rule file is invalid."""
-        rule_file_path = self.temp_dir.mkfile(content='invalid')
-        config = {
-            'metrics': {'metric1': {'type': 'gauge'}},
-            'files': {'file1': rule_file_path}}
-        config_path = self.temp_dir.mkfile(content=yaml.dump(config))
-        args = self.script.get_parser().parse_args([str(config_path)])
-        with self.assertRaises(ErrorExitMessage) as cm:
-            self.script.configure(args)
-        self.assertEqual(
-            str(cm.exception),
-            'in {}:1: syntax error near <eof>'.format(rule_file_path))
+        rule_file.write_text('invalid')
+        args = script.get_parser().parse_args([str(config_file)])
+        with pytest.raises(ErrorExitMessage) as err:
+            script.configure(args)
+        assert str(
+            err.value) == (f'in {str(rule_file)}:1: syntax error near <eof>')
 
-    def test_configure_invalid_metric_type(self):
+    def test_configure_invalid_metric_type(self, script, config_file):
         """An error is raised if an invalid metric type is configured."""
         config = {'metrics': {'metric': {'type': 'unknown'}}}
-        config_path = self.temp_dir.mkfile(content=yaml.dump(config))
-        args = self.script.get_parser().parse_args([str(config_path)])
-        with self.assertRaises(ErrorExitMessage) as cm:
-            self.script.configure(args)
-        self.assertEqual(
-            str(cm.exception),
+        config_file.write_text(yaml.dump(config))
+        args = script.get_parser().parse_args([str(config_file)])
+        with pytest.raises(ErrorExitMessage) as err:
+            script.configure(args)
+        assert str(err.value) == (
             'Invalid type for metric: must be one of counter, enum, gauge, '
             'histogram, info, summary')
 
@@ -110,31 +118,33 @@ class FakeWatcher:
         self.stop_called = True
 
 
-class LMetricsScriptApplicationTests(AioHTTPTestCase, TestWithFixtures):
+@pytest.fixture
+def watcher():
+    yield FakeWatcher()
 
-    def setUp(self):
-        self.watcher = FakeWatcher()
-        self.temp_dir = self.useFixture(TempDirFixture())
-        self.config = {'metrics': {'metric': {'type': 'gauge'}}}
-        self.config_path = self.temp_dir.mkfile(
-            content=yaml.dump(self.config))
-        super().setUp()
 
-    async def get_application(self):
-        self.script = LMetricsScript(loop=self.loop)
-        self.script.watchers = [self.watcher]
-        args = self.script.get_parser().parse_args([str(self.config_path)])
-        args.config.close()
-        exporter = self.script._get_exporter(args)
-        return exporter.app
+@pytest.fixture
+async def app(event_loop, watcher, config_file):
+    config = {'metrics': {'metric': {'type': 'gauge'}}}
+    config_file.write_text(yaml.dump(config))
+    script = LMetricsScript(loop=event_loop)
+    script.watchers = [watcher]
+    args = script.get_parser().parse_args([str(config_file)])
+    args.config.close()
+    exporter = script._get_exporter(args)
+    yield exporter.app
 
-    @unittest_run_loop
-    async def test_watchers_start(self):
+
+@pytest.mark.asyncio
+class TestLMetricsScriptApplication:
+
+    async def test_watchers_start(self, test_client, app, watcher):
         """Watchers are started when the app is stated."""
-        self.assertTrue(self.watcher.watch_called)
+        await test_client(app)
+        assert watcher.watch_called
 
-    @unittest_run_loop
-    async def test_watcher_stop(self):
+    async def test_watcher_stop(self, test_client, app, watcher):
         """Watchers are stopped when the app is shut down."""
-        await self.app.shutdown()
-        self.assertTrue(self.watcher.stop_called)
+        await test_client(app)
+        await app.shutdown()
+        assert watcher.stop_called

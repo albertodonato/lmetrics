@@ -2,10 +2,8 @@
 
 from collections import namedtuple
 
+from prometheus_aioexporter import MetricConfig
 import yaml
-
-from prometheus_aioexporter.metric import MetricConfig
-
 
 # Top-level configuration
 Config = namedtuple('Config', ['metrics', 'files'])

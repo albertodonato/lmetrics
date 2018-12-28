@@ -6,9 +6,9 @@ from butter.asyncio.inotify import Inotify_async
 from butter.inotify import (
     IN_CREATE,
     IN_DELETE,
+    IN_MODIFY,
     IN_MOVED_FROM,
     IN_MOVED_TO,
-    IN_MODIFY,
 )
 from toolrack.aio import StreamHelper
 from toolrack.log import Loggable
@@ -155,7 +155,8 @@ def create_watchers(analyzers, loop):
     """Return a list of FileWatchers for FileAnalyzers."""
     return [
         FileWatcher(analyzer.path, analyzer.analyze_line, loop=loop)
-        for analyzer in analyzers]
+        for analyzer in analyzers
+    ]
 
 
 class WatchedFiles:
@@ -170,7 +171,11 @@ class WatchedFiles:
     def set(self, path, wd=_DEFAULT, fd=_DEFAULT):
         """Set and return info about a watched file."""
         file_info = self._path_to_info.setdefault(
-            path, {'path': path, 'wd': None, 'fd': None})
+            path, {
+                'path': path,
+                'wd': None,
+                'fd': None
+            })
 
         # update only provided info
         if wd is not self._DEFAULT:

@@ -2,12 +2,15 @@
 
 import argparse
 
-from toolrack.script import ErrorExitMessage
-from prometheus_aioexporter.script import PrometheusExporterScript
+from prometheus_aioexporter import PrometheusExporterScript
 from prometheus_aioexporter.metric import InvalidMetricType
+from toolrack.script import ErrorExitMessage
 
 from .config import load_config
-from .rule import create_file_analyzers, RuleSyntaxError
+from .rule import (
+    create_file_analyzers,
+    RuleSyntaxError,
+)
 from .watch import create_watchers
 
 
@@ -16,8 +19,7 @@ class LMetricsScript(PrometheusExporterScript):
 
     def configure_argument_parser(self, parser):
         parser.add_argument(
-            'config', type=argparse.FileType('r'),
-            help='configuration file')
+            'config', type=argparse.FileType('r'), help='configuration file')
 
     def configure(self, args):
         config = self._load_config(args.config)

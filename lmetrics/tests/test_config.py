@@ -1,58 +1,60 @@
 from operator import attrgetter
+from pathlib import Path
 
 from prometheus_aioexporter.metric import InvalidMetricType
-from toolrack.testing import (
-    TestCase,
-    TempDirFixture,
-)
+import pytest
 import yaml
 
 from ..config import load_config
 
 
-class LoadConfigTests(TestCase):
+@pytest.fixture
+def config_file(tmpdir):
+    yield Path(tmpdir / 'config.yaml')
 
-    def setUp(self):
-        super().setUp()
-        self.tempdir = self.useFixture(TempDirFixture())
 
-    def test_load_files_section(self):
+class TestLoadConfig:
+
+    def test_load_files_section(self, config_file):
         """The 'files' section is loaded from the config file."""
         config = {'files': {'file1': 'rule1', 'file2': 'rule2'}}
-        config_file = self.tempdir.mkfile(content=yaml.dump(config))
+        config_file.write_text(yaml.dump(config))
         with config_file.open() as fd:
             result = load_config(fd)
-        self.assertEqual(result.files, {'file1': 'rule1', 'file2': 'rule2'})
+        assert result.files == {'file1': 'rule1', 'file2': 'rule2'}
 
-    def test_load_metrics_section(self):
+    def test_load_metrics_section(self, config_file):
         """The 'metrics' section is loaded from the config file."""
         config = {
             'metrics': {
                 'metric1': {
                     'type': 'summary',
-                    'description': 'metric one'},
+                    'description': 'metric one'
+                },
                 'metric2': {
                     'type': 'histogram',
                     'description': 'metric two',
-                    'buckets': [10, 100, 1000]}}}
-        config_file = self.tempdir.mkfile(content=yaml.dump(config))
+                    'buckets': [10, 100, 1000]
+                }
+            }
+        }
+        config_file.write_text(yaml.dump(config))
         with config_file.open() as fd:
             result = load_config(fd)
         metric1, metric2 = sorted(result.metrics, key=attrgetter('name'))
-        self.assertEqual(metric1.type, 'summary')
-        self.assertEqual(metric1.description, 'metric one')
-        self.assertEqual(metric1.config, {})
-        self.assertEqual(metric2.type, 'histogram')
-        self.assertEqual(metric2.description, 'metric two')
-        self.assertEqual(metric2.config, {'buckets': [10, 100, 1000]})
+        assert metric1.type == 'summary'
+        assert metric1.description == 'metric one'
+        assert metric1.config == {}
+        assert metric2.type == 'histogram'
+        assert metric2.description == 'metric two'
+        assert metric2.config == {'buckets': [10, 100, 1000]}
 
-    def test_load_metrics_invalid_type(self):
+    def test_load_metrics_invalid_type(self, config_file):
         """An error is raised if a metric type is invalid."""
         config = {'metrics': {'metric': {'type': 'unknown'}}}
-        conf = self.tempdir.mkfile(content=yaml.dump(config))
-        with self.assertRaises(InvalidMetricType) as cm, conf.open() as fd:
+        config_file.write_text(yaml.dump(config))
+        with pytest.raises(InvalidMetricType) as err, config_file.open() as fd:
             load_config(fd)
-        self.assertEqual(
-            str(cm.exception),
+        assert str(err.value) == (
             'Invalid type for metric: must be one of counter, enum, gauge, '
             'histogram, info, summary')
