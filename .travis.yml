@@ -10,6 +10,8 @@ addons:
       - libseccomp-dev
 matrix:
   fast_finish: true
+  allow_failures:
+    - python: "3.7-dev"
 stages:
   - lint
   - test
