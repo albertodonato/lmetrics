@@ -1,6 +1,10 @@
 import logging
 from pathlib import Path
 import re
+from typing import (
+    List,
+    NamedTuple,
+)
 
 import lupa
 from toolrack.log import Loggable
@@ -12,19 +16,6 @@ class RuleSyntaxError(Exception):
     def __init__(self, path, message):
         error = message.replace('error loading code: [string "<python>"]', '')
         super().__init__('in {}{}'.format(path, error))
-
-
-class FileAnalyzer:
-    """An analyzer for a file."""
-
-    def __init__(self, path, rules):
-        self.path = path
-        self.rules = rules
-
-    def analyze_line(self, line):
-        """Analyze a line from the file."""
-        for rule in self.rules:
-            rule.analyze_line(line)
 
 
 class LuaFileRule:
@@ -52,10 +43,20 @@ class LuaFileRule:
         return values
 
 
+class FileAnalyzer(NamedTuple):
+    """An analyzer for a file."""
+
+    path: Path
+    rules: List[LuaFileRule]
+
+    def analyze_line(self, line):
+        """Analyze a line from the file."""
+        for rule in self.rules:
+            rule.analyze_line(line)
+
+
 class RuleRegistry(Loggable):
     """A registry for rules to match log files content."""
-
-    rule_class = LuaFileRule  # for testing
 
     def __init__(self, metrics):
         self._metrics = metrics
@@ -75,7 +76,7 @@ class RuleRegistry(Loggable):
             self.logger.info(
                 'loaded {} rule(s) from {}'.format(len(lua_rules), path))
             rules = [
-                self.rule_class(name, lua_rule)
+                LuaFileRule(name, lua_rule)
                 for name, lua_rule in lua_rules.items()
             ]
             self._rules_by_file[path] = rules

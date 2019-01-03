@@ -1,4 +1,3 @@
-from collections import namedtuple
 import logging
 from operator import attrgetter
 from pathlib import Path
@@ -31,9 +30,6 @@ class FakeLuaRule:
 
     def action(self, values):
         self.calls.append(values)
-
-
-FakeLuaFileRule = namedtuple('FakeLuaFileRule', ['name', 'lua_rule'])
 
 
 class TestFileAnalyzer:
@@ -71,9 +67,7 @@ class TestLuaFileRule:
 def registry():
     # fake metrics
     metrics = {'metric1': object(), 'metric2': object()}
-    registry = RuleRegistry(metrics)
-    registry.lua_rule_class = FakeLuaFileRule
-    yield registry
+    yield RuleRegistry(metrics)
 
 
 @pytest.fixture

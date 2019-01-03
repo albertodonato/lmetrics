@@ -1,12 +1,19 @@
 """Confiuration file handling."""
 
-from collections import namedtuple
+from typing import (
+    Dict,
+    NamedTuple,
+)
 
 from prometheus_aioexporter import MetricConfig
 import yaml
 
-# Top-level configuration
-Config = namedtuple('Config', ['metrics', 'files'])
+
+class Config(NamedTuple):
+    """Top-level configuration."""
+
+    metrics: Dict[str, Dict]
+    files: Dict[str, Dict]
 
 
 def load_config(config_fd):
