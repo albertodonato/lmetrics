@@ -2,6 +2,8 @@
 
 from typing import (
     Dict,
+    IO,
+    List,
     NamedTuple,
 )
 
@@ -12,11 +14,11 @@ import yaml
 class Config(NamedTuple):
     """Top-level configuration."""
 
-    metrics: Dict[str, Dict]
+    metrics: List[MetricConfig]
     files: Dict[str, Dict]
 
 
-def load_config(config_fd):
+def load_config(config_fd: IO) -> Config:
     """Load YAML config from file."""
     config = yaml.load(config_fd)
     metrics = _get_metrics(config.get('metrics', {}))
@@ -24,7 +26,7 @@ def load_config(config_fd):
     return Config(metrics, files)
 
 
-def _get_metrics(metrics):
+def _get_metrics(metrics: Dict[str, Dict]) -> List[MetricConfig]:
     """Return metrics configuration."""
     configs = []
     for name, config in metrics.items():

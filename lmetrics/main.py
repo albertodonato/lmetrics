@@ -50,8 +50,7 @@ class LMetricsScript(PrometheusExporterScript):
         try:
             return create_file_analyzers(files, metrics)
         except FileNotFoundError as error:
-            raise ErrorExitMessage(
-                'Rule file not found: {}'.format(error.filename))
+            raise ErrorExitMessage(f'Rule file not found: {error.filename}')
         except RuleSyntaxError as error:
             raise ErrorExitMessage(str(error))
 
