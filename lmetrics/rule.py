@@ -18,8 +18,8 @@ class RuleSyntaxError(Exception):
     """Raised if the rule code contains errors."""
 
     def __init__(self, path: Path, message: str):
-        error = message.replace('error loading code: [string "<python>"]', '')
-        super().__init__(f'in {path}{error}')
+        error = message.replace('error loading code: [string "<python>"]', "")
+        super().__init__(f"in {path}{error}")
 
 
 ActionMatch = Dict[str, Union[str, float]]
@@ -28,9 +28,9 @@ ActionMatch = Dict[str, Union[str, float]]
 class LuaRule:
     """Base class for rules parsed from Lua files."""
 
-    regexp: str = ''
+    regexp: str = ""
 
-    def __init__(self, regexp: str = ''):
+    def __init__(self, regexp: str = ""):
         self.regexp = regexp
 
     def action(self, match: ActionMatch):
@@ -96,20 +96,19 @@ class RuleRegistry(Loggable):
 
         if not rules:
             lua_rules = self._get_rules_from_file(path, self._metrics)
-            self.logger.info(f'loaded {len(lua_rules)} rule(s) from {path}')
+            self.logger.info(f"loaded {len(lua_rules)} rule(s) from {path}")
             rules = [
-                LuaFileRule(name, lua_rule)
-                for name, lua_rule in lua_rules.items()
+                LuaFileRule(name, lua_rule) for name, lua_rule in lua_rules.items()
             ]
             self._rules_by_file[path] = rules
 
         return rules
 
-    def _get_rules_from_file(self, path: Path,
-                             metrics: Dict[str, Metric]) -> Dict[str, LuaRule]:
+    def _get_rules_from_file(
+        self, path: Path, metrics: Dict[str, Metric]
+    ) -> Dict[str, LuaRule]:
         """Return rules from a file."""
-        lua = lupa.LuaRuntime(
-            unpack_returned_tuples=True, register_builtins=False)
+        lua = lupa.LuaRuntime(unpack_returned_tuples=True, register_builtins=False)
         g = lua.globals()
         # fill in globals
         g.print = self._lua_print(path)
@@ -132,13 +131,13 @@ class RuleRegistry(Loggable):
 
     def _lua_print(self, path: Path) -> Callable:
         """Substitute for lua print which logs instead."""
-        logger = logging.getLogger(f'lmetrics.rule[{path}]')
-        return lambda *args: logger.info(' '.join(str(arg) for arg in args))
+        logger = logging.getLogger(f"lmetrics.rule[{path}]")
+        return lambda *args: logger.info(" ".join(str(arg) for arg in args))
 
 
 def create_file_analyzers(
-        file_rules_names_map: Dict[Path, str],
-        metrics: Dict[str, Metric]) -> List[FileAnalyzer]:
+    file_rules_names_map: Dict[Path, str], metrics: Dict[str, Metric]
+) -> List[FileAnalyzer]:
     """Return FileAnalyzers for the specified file/rule map."""
     registry = RuleRegistry(metrics)
     return [

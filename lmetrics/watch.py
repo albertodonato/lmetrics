@@ -31,11 +31,12 @@ class FileWatcher(Loggable):
     _task: Optional[asyncio.Task] = None
 
     def __init__(
-            self,
-            path: Union[str, Path],
-            callback: Callable[[str], None],
-            encoding: str = 'utf-8',
-            loop: Optional[asyncio.AbstractEventLoop] = None):
+        self,
+        path: Union[str, Path],
+        callback: Callable[[str], None],
+        encoding: str = "utf-8",
+        loop: Optional[asyncio.AbstractEventLoop] = None,
+    ):
         self.loop = loop or asyncio.get_event_loop()
         self.path = Path(path).absolute()
         self.name = str(self.path)  # for the logger
@@ -61,11 +62,11 @@ class FileWatcher(Loggable):
         for file_path in self._files.paths():
             self._close_file(file_path)
 
-        self.logger.debug('stop watch loop')
+        self.logger.debug("stop watch loop")
 
     async def _watch(self):
         with contextlib.closing(Inotify_async(loop=self.loop)) as inotify:
-            self.logger.debug('start watch loop')
+            self.logger.debug("start watch loop")
             await self._watch_loop(inotify)
 
     async def _watch_loop(self, inotify: Inotify_async):
@@ -88,14 +89,14 @@ class FileWatcher(Loggable):
 
     def _watch_dir(self, inotify: Inotify_async):
         """Watch the containing dir."""
-        self.logger.debug(f'watching directory {self.path.parent}')
+        self.logger.debug(f"watching directory {self.path.parent}")
         inotify.watch(
-            str(self.path.parent),
-            IN_CREATE | IN_MOVED_FROM | IN_MOVED_TO | IN_DELETE)
+            str(self.path.parent), IN_CREATE | IN_MOVED_FROM | IN_MOVED_TO | IN_DELETE
+        )
 
     def _watch_file(self, inotify: Inotify_async, path: Path):
         """Watch a file."""
-        self.logger.debug(f'watching file {path}')
+        self.logger.debug(f"watching file {path}")
         wd = inotify.watch(str(path), IN_MODIFY)
         self._files.set(path, wd=wd)
 
@@ -113,13 +114,13 @@ class FileWatcher(Loggable):
                 self._read_file_content(file_path, from_start=True)
             self._watch_file(inotify, file_path)
         elif event.moved_from_event:
-            self.logger.debug(f'file moved {file_path}')
-            inotify.ignore(self._files[file_path]['wd'])
+            self.logger.debug(f"file moved {file_path}")
+            inotify.ignore(self._files[file_path]["wd"])
             self._move_cookies.add(event.cookie)
             self._close_file(file_path)
             del self._files[file_path]
         elif event.delete_event:
-            self.logger.debug(f'file removed: {file_path}')
+            self.logger.debug(f"file removed: {file_path}")
             self._close_file(file_path)
             del self._files[file_path]
 
@@ -127,9 +128,9 @@ class FileWatcher(Loggable):
         file_info = self._files[event.wd]
         if not file_info:
             return  # the file has been ignored or removed
-        file_path = file_info['path']
+        file_path = file_info["path"]
         if event.modify_event:
-            self.logger.debug(f'file modified: {file_path}')
+            self.logger.debug(f"file modified: {file_path}")
             self._read_file_content(file_path)
 
     def _read_file_content(self, path: Path, from_start: bool = False):
@@ -149,7 +150,7 @@ class FileWatcher(Loggable):
     def _get_file_fd(self, path: Path) -> IO:
         """Return the file descriptor for a path."""
         file_info = self._files.set(path)
-        fd: Optional[IO] = file_info['fd']
+        fd: Optional[IO] = file_info["fd"]
         if fd is None:
             fd = path.open(encoding=self._encoding)
             self._files.set(path, fd=fd)
@@ -161,14 +162,13 @@ class FileWatcher(Loggable):
         if not file_info:
             return
 
-        fd = file_info['fd']
+        fd = file_info["fd"]
         if fd is not None:
             fd.close()
             self._files.set(path, fd=None)
 
 
-def create_watchers(
-        analyzers: List[FileAnalyzer], loop: asyncio.AbstractEventLoop):
+def create_watchers(analyzers: List[FileAnalyzer], loop: asyncio.AbstractEventLoop):
     """Return a list of FileWatchers for FileAnalyzers."""
     return [
         FileWatcher(analyzer.path, analyzer.analyze_line, loop=loop)
@@ -188,17 +188,14 @@ class WatchedFiles:
     def set(self, path, wd=_DEFAULT, fd=_DEFAULT):
         """Set and return info about a watched file."""
         file_info = self._path_to_info.setdefault(
-            path, {
-                'path': path,
-                'wd': None,
-                'fd': None
-            })
+            path, {"path": path, "wd": None, "fd": None}
+        )
 
         # update only provided info
         if wd is not self._DEFAULT:
-            file_info['wd'] = wd
+            file_info["wd"] = wd
         if fd is not self._DEFAULT:
-            file_info['fd'] = fd
+            file_info["fd"] = fd
 
         if wd is None:
             self._wd_to_path.pop(wd, None)
@@ -224,7 +221,7 @@ class WatchedFiles:
     def __delitem__(self, key):
         """Delete an item by watch descriptor or path."""
         if isinstance(key, int):
-            path = self._get_by_wd(key)['path']
+            path = self._get_by_wd(key)["path"]
             del self._wd_to_path[key]
         else:
             path = key

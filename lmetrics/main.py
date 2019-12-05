@@ -19,7 +19,8 @@ class LMetricsScript(PrometheusExporterScript):
 
     def configure_argument_parser(self, parser):
         parser.add_argument(
-            'config', type=argparse.FileType('r'), help='configuration file')
+            "config", type=argparse.FileType("r"), help="configuration file"
+        )
 
     def configure(self, args):
         config = self._load_config(args.config)
@@ -50,7 +51,7 @@ class LMetricsScript(PrometheusExporterScript):
         try:
             return create_file_analyzers(files, metrics)
         except FileNotFoundError as error:
-            raise ErrorExitMessage(f'Rule file not found: {error.filename}')
+            raise ErrorExitMessage(f"Rule file not found: {error.filename}")
         except RuleSyntaxError as error:
             raise ErrorExitMessage(str(error))
 

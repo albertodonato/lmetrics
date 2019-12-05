@@ -1,7 +1,8 @@
 language: python
 python:
   - "3.6"
-  - "3.7-dev"
+  - "3.7"
+  - "3.8"
 addons:
   apt:
     packages:
@@ -10,8 +11,6 @@ addons:
       - libseccomp-dev
 matrix:
   fast_finish: true
-  allow_failures:
-    - python: "3.7-dev"
 stages:
   - lint
   - check 
